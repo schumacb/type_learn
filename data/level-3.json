@@ -1,0 +1,9 @@
+[
+    {"text": "ICH BIN DREI", "icons": ["👶", "3️⃣"]}, {"text": "MEIN NAME IST", "icons": ["📛", "✍️"]},
+    {"text": "ICH HABE HUNGER", "icons": ["😋", "🍔"]}, {"text": "ICH HABE DURST", "icons": ["😋", "🥤"]},
+    {"text": "ICH BIN MÜDE", "icons": ["😴"]}, {"text": "ICH BIN FROH", "icons": ["😊"]},
+    {"text": "ICH BIN TRAURIG", "icons": ["😢"]}, {"text": "ICH BIN KLEIN", "icons": ["👶"]},
+    {"text": "ICH BIN GROß", "icons": ["💪"]}, {"text": "ICH LIEBE DICH", "icons": ["❤️", "😊"]},
+    {"text": "GUTE NACHT", "icons": ["🌙", "😴"]}, {"text": "ALLES GUTE", "icons": ["🎉"]},
+    {"text": "VIEL GLÜCK", "icons": ["🍀"]}, {"text": "SCHÖNEN TAG", "icons": ["😊", "☀️"]}
+]

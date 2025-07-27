@@ -1,0 +1,12 @@
+[
+    {"text": "FREUNDE", "icons": ["🤝"]}, {"text": "FAMILIE", "icons": ["👨‍👩‍👧‍👦"]},
+    {"text": "SCHULEN", "icons": ["🏫"]}, {"text": "LESEN", "icons": ["📖"]},
+    {"text": "SCHREIBEN", "icons": ["✏️"]}, {"text": "RECHNEN", "icons": ["🔢"]},
+    {"text": "MALFELD", "icons": ["🎨"]}, {"text": "SPIELEN", "icons": ["🎮"]},
+    {"text": "TURNEN", "icons": ["🤸"]}, {"text": "SCHWIMMEN", "icons": ["🏊"]},
+    {"text": "SCHLAFEN", "icons": ["😴"]}, {"text": "ESSEN", "icons": ["🍽️"]},
+    {"text": "TRINKEN", "icons": ["🥤"]}, {"text": "SAUBER", "icons": ["🧼"]},
+    {"text": "GUTEN TAG", "icons": ["👋", "☀️"]}, {"text": "DANKE", "icons": ["🙏"]},
+    {"text": "BITTE", "icons": ["🤲"]}, {"text": "JA", "icons": ["👍"]},
+    {"text": "NEIN", "icons": ["👎"]}, {"text": "TSCHÜSS", "icons": ["👋"]}
+]

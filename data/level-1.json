@@ -1,0 +1,15 @@
+[
+    {"text": "HALLO", "icons": ["👋"]}, {"text": "MAMA", "icons": ["👩"]},
+    {"text": "PAPA", "icons": ["👨"]}, {"text": "AUTO", "icons": ["🚗"]},
+    {"text": "HAUS", "icons": ["🏠"]}, {"text": "BAUM", "icons": ["🌳"]},
+    {"text": "TIER", "icons": ["🐾"]}, {"text": "KIND", "icons": ["👶"]},
+    {"text": "SPIEL", "icons": ["🎮"]}, {"text": "BUCH", "icons": ["📚"]},
+    {"text": "SCHULE", "icons": ["🏫"]}, {"text": "FREUND", "icons": ["🤝"]},
+    {"text": "LIEBE", "icons": ["❤️"]}, {"text": "HUND", "icons": ["🐶"]},
+    {"text": "KATZE", "icons": ["🐱"]}, {"text": "VOGEL", "icons": ["🐦"]},
+    {"text": "BLUME", "icons": ["🌸"]}, {"text": "WASSER", "icons": ["💧"]},
+    {"text": "BROT", "icons": ["🍞"]}, {"text": "MILCH", "icons": ["🥛"]},
+    {"text": "FISCH", "icons": ["🐟"]}, {"text": "SONNE", "icons": ["☀️"]},
+    {"text": "MOND", "icons": ["🌙"]}, {"text": "STERN", "icons": ["⭐"]},
+    {"text": "WOLKE", "icons": ["☁️"]}
+]

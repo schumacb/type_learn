@@ -524,11 +524,7 @@
             await loadGameData(); // Load data as soon as the page opens
 
             initKeyboard();
-            displayElement.textContent = "Klicke, um zu starten!";
-            displayElement.style.cursor = "pointer";
-
-            displayElement.addEventListener('click', (e) => startGame(e), { once: true });
-            document.addEventListener('keydown', (e) => startGame(e), { once: true });
+            await startGame();
 
             correctElement.textContent = correctCount;
             errorsElement.textContent = errorCount;

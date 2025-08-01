@@ -118,7 +118,7 @@
             usedWords = [];
         }
 
-        const rowOffsets = [0, -30, -05, 20];
+        const rowOffsets = [0, -30, -5, 20];
 
         function initKeyboard() {
             keyboardElement.innerHTML = '';
@@ -278,7 +278,15 @@
         }
 
         function handleKeyPress(key) {
-            if (!gameStarted) return; // Add this line to ignore key presses before the game starts
+            if (!gameStarted) return; // Ignore key presses before the game starts
+
+            // Ignore modifier keys and function keys
+            const modifierKeys = [
+                'Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'ContextMenu', 'ScrollLock', 'Pause', 'Insert', 'Home', 'End', 'PageUp', 'PageDown',
+                // Function keys F1-F24
+                ...Array.from({length: 24}, (_, i) => `F${i+1}`)
+            ];
+            if (modifierKeys.includes(key)) return;
 
             // Highlight the pressed key
             const keyElement = document.querySelector(`.key[data-key="${key}"]`);
@@ -429,6 +437,16 @@
         document.addEventListener('keydown', (event) => {
             // Only handle game-related key presses if the game has actually started
             if (gameStarted) {
+                // Ignore modifier keys
+                if (
+                    event.ctrlKey || event.altKey || event.metaKey ||
+                    ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'ContextMenu', 'ScrollLock', 'Pause', 'Insert', 'Home', 'End', 'PageUp', 'PageDown',
+                    // Function keys F1-F24
+                    ...Array.from({length: 24}, (_, i) => `F${i+1}`)
+                    ].includes(event.key)
+                ) {
+                    return;
+                }
                 if (event.key === ' ') event.preventDefault();
                 const key = event.key === 'ß' ? 'ß' : event.key.toUpperCase();
 

@@ -31,6 +31,16 @@ Es ist keine Installation erforderlich. Lade einfach die Projektdateien herunter
 
 ---
 
+## Running a Simple Python Webserver for Local Testing
+
+To serve this project locally (for example, to test in your browser), you can use Python's built-in HTTP server. Run the following command in your project directory:
+
+```bash
+python3 -m http.server 8000
+```
+
+Then open [http://localhost:8000](http://localhost:8000) in your browser.
+
 ## Audio-Generierung: Konfiguration & Ausführung
 
 Mit dem Skript [`generate-audio.js`](generate-audio.js:1) kannst du automatisch Audiodateien für alle Wörter in den JSON-Daten generieren lassen. Folge diesen Schritten, um die Audio-Generierung korrekt einzurichten und auszuführen:

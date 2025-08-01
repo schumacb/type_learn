@@ -1,0 +1,4 @@
+{
+    "TTS_PROVIDER": "openai",
+    "OPENAI_VOICE": "fable"
+}

@@ -31,4 +31,91 @@ Es ist keine Installation erforderlich. Lade einfach die Projektdateien herunter
 
 ---
 
+## Audio-Generierung: Konfiguration & Ausführung
+
+Mit dem Skript [`generate-audio.js`](generate-audio.js:1) kannst du automatisch Audiodateien für alle Wörter in den JSON-Daten generieren lassen. Folge diesen Schritten, um die Audio-Generierung korrekt einzurichten und auszuführen:
+
+### 1. Voraussetzungen
+
+- **Node.js**: Version 18 oder höher wird empfohlen.
+- **Abhängigkeiten installieren**: Führe im Projektverzeichnis `npm install` aus, um alle benötigten Pakete zu installieren.
+
+### 2. TTS-Anbieter & Stimme konfigurieren
+
+Das Projekt unterstützt verschiedene Text-to-Speech-Anbieter (TTS) für die Audioausgabe. Die Auswahl und Konfiguration erfolgt über Umgebungsvariablen oder eine optionale `config.json`.
+
+#### Anbieter wählen
+
+Setze die Umgebungsvariable `TTS_PROVIDER` auf einen der folgenden Werte:
+
+- `elevenlabs`
+- `openai`
+
+#### Stimme (Voice) wählen
+
+Du kannst die gewünschte Stimme für beide Anbieter konfigurieren:
+
+- **Für OpenAI:** Setze `OPENAI_VOICE` (z.B. `"shimmer"` für Deutsch, `"alloy"` für Englisch).
+- **Für ElevenLabs:** Setze `ELEVENLABS_VOICE` (Voice-ID, z.B. `"NBqeXKdZHweef6y0B67V"`).
+
+Die Variablen können in einer `.env`-Datei **oder** in einer `config.json` gesetzt werden. Werte aus `config.json` überschreiben die `.env`, falls beide vorhanden sind.
+
+##### Beispiel `.env`:
+
+```
+TTS_PROVIDER=elevenlabs
+XI_API_KEY=dein-elevenlabs-api-key
+OPENAI_API_KEY=dein-openai-api-key
+OPENAI_VOICE=shimmer
+ELEVENLABS_VOICE=NBqeXKdZHweef6y0B67V
+```
+
+##### Beispiel `config.json`:
+
+```json
+{
+  "TTS_PROVIDER": "openai",
+  "XI_API_KEY": "dein-elevenlabs-api-key",
+  "OPENAI_API_KEY": "dein-openai-api-key",
+  "OPENAI_VOICE": "shimmer",
+  "ELEVENLABS_VOICE": "NBqeXKdZHweef6y0B67V"
+}
+```
+
+> **Hinweis:**
+> - Für **OpenAI**: Stimmen wie `"shimmer"` oder `"onyx"` unterstützen Deutsch. Siehe die [OpenAI TTS-Dokumentation](https://platform.openai.com/docs/guides/text-to-speech/voice-options) für eine vollständige Liste.
+> - Für **ElevenLabs**: Die Voice-ID bestimmt die Stimme und Sprache. Siehe das ElevenLabs-Dashboard für verfügbare Stimmen und deren IDs.
+
+#### Benötigte Umgebungsvariablen
+
+- **ElevenLabs:** `XI_API_KEY`, `ELEVENLABS_VOICE` (optional, sonst Standard)
+- **OpenAI:** `OPENAI_API_KEY`, `OPENAI_VOICE` (optional, sonst Standard)
+- Immer: `TTS_PROVIDER` (entweder `elevenlabs` oder `openai`)
+
+Stimmen-Variablen sind optional. Wird keine gesetzt, wird eine Standardstimme verwendet.
+
+### 3. Skript ausführen
+
+Führe im Projektverzeichnis folgenden Befehl aus:
+
+```
+node generate-audio.js
+```
+
+### 4. Was macht das Skript?
+
+- Liest alle JSON-Dateien im Verzeichnis `data/` aus.
+- Extrahiert alle Wörter und generiert für jedes Wort eine Audiodatei (`.mp3`) im Verzeichnis `audio/`.
+- Verwendet den gewählten TTS-Anbieter (ElevenLabs oder OpenAI) und die konfigurierte Stimme zur Sprachausgabe.
+- Überspringt Wörter, für die bereits eine Audiodatei existiert.
+
+### 5. Hinweise & Fehlerbehebung
+
+- Stelle sicher, dass die API-Schlüssel und ggf. Voice-IDs korrekt gesetzt und gültig sind.
+- Das Skript bricht ab, wenn keine Verbindung zum TTS-Anbieter hergestellt werden kann oder die Datenverzeichnisse fehlen.
+- Bei Problemen prüfe die Konsolenausgabe auf Fehlermeldungen (z.B. fehlende API-Keys, ungültige JSON-Dateien, fehlende Verzeichnisse).
+- Die Generierung kann je nach Anzahl der Wörter und Geschwindigkeit des TTS-Anbieters einige Zeit dauern.
+
+---
+
 Viel Spaß beim Tippen lernen! 🐘

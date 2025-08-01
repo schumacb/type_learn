@@ -4,6 +4,47 @@ require('dotenv').config(); // Load environment variables from .env file
 const fs = require('fs');
 const path = require('path');
 
+// --- TTS PROVIDER SELECTION ---
+const elevenlabs = require('./elevenlabs');
+const openai = require('./openai');
+
+/**
+ * TTS Provider selection precedence:
+ * 1. Use process.env.TTS_PROVIDER if set (from .env).
+ * 2. If not set, check for a config.json file in the project root and use its TTS_PROVIDER value if present.
+ * 3. If neither is set, default to 'elevenlabs'.
+ *
+ * Example config.json structure:
+ * {
+ *   "TTS_PROVIDER": "openai"
+ * }
+ */
+let TTS_PROVIDER = process.env.TTS_PROVIDER;
+let OPENAI_VOICE = process.env.OPENAI_VOICE;
+let ELEVENLABS_VOICE = process.env.ELEVENLABS_VOICE;
+
+try {
+    const configPath = path.join(__dirname, 'config.json');
+    if (fs.existsSync(configPath)) {
+        const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        if (!TTS_PROVIDER && configData && typeof configData.TTS_PROVIDER === 'string' && configData.TTS_PROVIDER.trim()) {
+            TTS_PROVIDER = configData.TTS_PROVIDER.trim();
+        }
+        if (!OPENAI_VOICE && configData && typeof configData.OPENAI_VOICE === 'string' && configData.OPENAI_VOICE.trim()) {
+            OPENAI_VOICE = configData.OPENAI_VOICE.trim();
+        }
+        if (!ELEVENLABS_VOICE && configData && typeof configData.ELEVENLABS_VOICE === 'string' && configData.ELEVENLABS_VOICE.trim()) {
+            ELEVENLABS_VOICE = configData.ELEVENLABS_VOICE.trim();
+        }
+    }
+} catch (err) {
+    // Ignore config file errors, fallback to default
+}
+if (!TTS_PROVIDER) {
+    TTS_PROVIDER = 'elevenlabs';
+}
+// ------------------------------
+
 // --- CONFIGURATION ---
 // The API Key is now loaded securely from an environment variable
 const XI_API_KEY = process.env.XI_API_KEY;
@@ -53,34 +94,17 @@ async function main() {
             return;
         }
 
-        console.log(`Generating audio for "${word}"...`);
-        
-        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
-            method: 'POST',
-            headers: {
-                'Accept': 'audio/mpeg',
-                'Content-Type': 'application/json',
-                'xi-api-key': XI_API_KEY,
-            },
-            body: JSON.stringify({
-                text: word,
-                model_id: 'eleven_multilingual_v2',
-                voice_settings: { stability: 0.5, similarity_boost: 0.75 },
-                lang: 'de'
-            }),
-        });
-
-        if (!response.ok) {
-            console.error(`Error generating audio for "${word}": ${response.status} ${response.statusText}`);
-            return;
+        console.log(`Generating audio for "${word}" using ${TTS_PROVIDER}...`);
+        try {
+            if (TTS_PROVIDER === 'openai') {
+                await openai.generateAudio(word, filePath, OPENAI_VOICE);
+            } else {
+                await elevenlabs.generateAudio(word, filePath, ELEVENLABS_VOICE);
+            }
+            console.log(`Successfully saved ${fileName}`);
+        } catch (err) {
+            console.error(`Error generating audio for "${word}":`, err.message || err);
         }
-
-        // node-fetch v3 uses the standard .arrayBuffer(), which returns a generic ArrayBuffer.
-        // We convert it to a Node.js Buffer before writing to the file.
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = Buffer.from(arrayBuffer);
-        fs.writeFileSync(filePath, audioBuffer);
-        console.log(`Successfully saved ${fileName}`);
     }
 
     async function processAllWords() {

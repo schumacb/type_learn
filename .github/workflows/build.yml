@@ -34,7 +34,10 @@ jobs:
             libwebkit2gtk-4.1-dev \
             pkg-config \
             build-essential \
-            curl
+            curl \
+            patchelf \
+            desktop-file-utils \
+            libglib2.0-bin
 
       - name: Build with Tauri Action
         uses: tauri-apps/tauri-action@v0

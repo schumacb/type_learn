@@ -30,6 +30,7 @@ jobs:
             libglib2.0-dev \
             libgobject-2.0-0 \
             libsoup-3.0-dev \
+            libjavascriptcoregtk-4.1-dev \
             pkg-config \
             build-essential \
             curl

@@ -1,23 +1,3 @@
-const { invoke } = window.__TAURI__.core;
-
-let greetInputEl;
-let greetMsgEl;
-
-async function greet() {
-  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsgEl.textContent = await invoke("greet", { name: greetInputEl.value });
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  greetInputEl = document.querySelector("#greet-input");
-  greetMsgEl = document.querySelector("#greet-msg");
-  document.querySelector("#greet-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    greet();
-  });
-});
-
-
 // German keyboard layout (uppercase) - simplified
 const keyboardLayout = [
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'ß'],
@@ -138,7 +118,7 @@ function goToNextLevel() {
     usedWords = [];
 }
 
-const rowOffsets = [0, -30, -05, 20];
+const rowOffsets = [0, -30, -5, 20];
 
 function initKeyboard() {
     keyboardElement.innerHTML = '';
@@ -222,19 +202,37 @@ function generateNewWord() {
 
 async function speakWord(word) {
     // Priority 1: Try to play the pre-generated local audio file.
-    const fileName = `${encodeURIComponent(word)}.mp3`;
+    // Normalize filename: underscores for spaces, ASCII for special chars.
+    function normalizeFilename(str) {
+        return str
+            .replaceAll(" ", "_")
+            .replaceAll("Ä", "AE")
+            .replaceAll("Ö", "OE")
+            .replaceAll("Ü", "UE")
+            .replaceAll("ä", "ae")
+            .replaceAll("ö", "oe")
+            .replaceAll("ü", "ue")
+            .replaceAll("ß", "SS")
+            .replace(/[^A-Za-z0-9_]/g, ""); // Remove any other non-ASCII chars
+    }
+    const fileName = `${normalizeFilename(word)}.mp3`;
     const localAudioPath = `./audio/${fileName}`;
 
     try {
         const response = await fetch(localAudioPath);
         if (response.ok) {
             const audioBlob = await response.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
-            audio.addEventListener('ended', () => URL.revokeObjectURL(audioUrl));
-            audio.play();
-            console.log(`Played "${word}" from local file: ${localAudioPath}`);
-            return;
+            console.log(`Blob type for "${word}":`, audioBlob.type);
+            if (!audioBlob.type.startsWith('audio/')) {
+                console.error(`Blob for "${word}" is not a valid audio type:`, audioBlob.type);
+            } else {
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                audio.addEventListener('ended', () => URL.revokeObjectURL(audioUrl));
+                audio.play();
+                console.log(`Played "${word}" from local file: ${localAudioPath}`);
+                return;
+            }
         } else {
             console.warn(`Local file for "${word}" not found at ${localAudioPath} (${response.status}). Falling back to browser TTS.`);
         }
@@ -298,7 +296,15 @@ function playLevelUpFanfare() {
 }
 
 function handleKeyPress(key) {
-    if (!gameStarted) return; // Add this line to ignore key presses before the game starts
+    if (!gameStarted) return; // Ignore key presses before the game starts
+
+    // Ignore modifier keys and function keys
+    const modifierKeys = [
+        'Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'ContextMenu', 'ScrollLock', 'Pause', 'Insert', 'Home', 'End', 'PageUp', 'PageDown',
+        // Function keys F1-F24
+        ...Array.from({length: 24}, (_, i) => `F${i+1}`)
+    ];
+    if (modifierKeys.includes(key)) return;
 
     // Highlight the pressed key
     const keyElement = document.querySelector(`.key[data-key="${key}"]`);
@@ -449,6 +455,16 @@ function getRandomColor() {
 document.addEventListener('keydown', (event) => {
     // Only handle game-related key presses if the game has actually started
     if (gameStarted) {
+        // Ignore modifier keys
+        if (
+            event.ctrlKey || event.altKey || event.metaKey ||
+            ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'ContextMenu', 'ScrollLock', 'Pause', 'Insert', 'Home', 'End', 'PageUp', 'PageDown',
+            // Function keys F1-F24
+            ...Array.from({length: 24}, (_, i) => `F${i+1}`)
+            ].includes(event.key)
+        ) {
+            return;
+        }
         if (event.key === ' ') event.preventDefault();
         const key = event.key === 'ß' ? 'ß' : event.key.toUpperCase();
 
@@ -526,11 +542,7 @@ async function initGame() {
     await loadGameData(); // Load data as soon as the page opens
 
     initKeyboard();
-    displayElement.textContent = "Klicke, um zu starten!";
-    displayElement.style.cursor = "pointer";
-
-    displayElement.addEventListener('click', (e) => startGame(e), { once: true });
-    document.addEventListener('keydown', (e) => startGame(e), { once: true });
+    await startGame();
 
     correctElement.textContent = correctCount;
     errorsElement.textContent = errorCount;

@@ -1,6 +1,6 @@
-const fs = require('fs').promises;
-const path = require('path');
-const https = require('https');
+import * as fs from 'fs/promises';
+import path from 'path';
+import https from 'https';
 
 /**
  * Generates speech audio from text using the OpenAI TTS API and writes it to the specified output path.
@@ -69,4 +69,4 @@ async function generateAudio(word, outputPath, voice) {
   });
 }
 
-module.exports = { generateAudio };
+export { generateAudio };

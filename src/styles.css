@@ -170,6 +170,7 @@
             font-size: 3rem;
             animation: float 3s ease-in-out infinite;
             filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "EmojiOne Color", sans-serif;
         }
 
         @keyframes float {

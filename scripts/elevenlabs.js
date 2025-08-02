@@ -1,7 +1,7 @@
 // elevenlabs.js
-require('dotenv').config();
-const fs = require('fs');
-const path = require('path');
+import 'dotenv/config';
+import fs from 'fs';
+import path from 'path';
 
 /**
  * Generates audio for the given text using the ElevenLabs API and writes it to the specified output path.
@@ -52,4 +52,4 @@ async function generateAudio(word, outputPath, voiceId) {
     fs.writeFileSync(outputPath, audioBuffer);
 }
 
-module.exports = { generateAudio };
+export { generateAudio };

@@ -1,12 +1,18 @@
 // A Node.js script to pre-generate all audio files from JSON data files.
 
-require('dotenv').config(); // Load environment variables from .env file
-const fs = require('fs');
-const path = require('path');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+// Always load .env from project root, regardless of CWD
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+import fs from 'fs';
 
 // --- TTS PROVIDER SELECTION ---
-const elevenlabs = require('./elevenlabs');
-const openai = require('./openai');
+let elevenlabs = null;
+let openai = null;
+
 
 /**
  * TTS Provider selection precedence:
@@ -24,7 +30,7 @@ let OPENAI_VOICE = process.env.OPENAI_VOICE;
 let ELEVENLABS_VOICE = process.env.ELEVENLABS_VOICE;
 
 try {
-    const configPath = path.join(__dirname, 'config.json');
+    const configPath = path.join(__dirname, 'generate-audio.config');
     if (fs.existsSync(configPath)) {
         const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
         if (!TTS_PROVIDER && configData && typeof configData.TTS_PROVIDER === 'string' && configData.TTS_PROVIDER.trim()) {
@@ -54,8 +60,12 @@ const XI_API_KEY = process.env.XI_API_KEY;
 async function main() {
     // Dynamically import node-fetch v3, which is an ES-only module.
     const { default: fetch } = await import('node-fetch');
-    const audioDir = path.join(__dirname, 'audio');
-    const dataDir = path.join(__dirname, 'data');
+    const audioDir = path.join(__dirname, '../src/audio');
+    const dataDir = path.join(__dirname, '../src/data');
+
+    // Parse CLI arguments for special modes
+    const args = process.argv.slice(2);
+    const listMode = args.includes('--list-missing-unused') || args.includes('--list-audio-status');
 
     if (TTS_PROVIDER === 'elevenlabs' && !XI_API_KEY) {
         console.error("FATAL: XI_API_KEY is not defined for ElevenLabs. Please add it to your .env file.");
@@ -83,13 +93,59 @@ async function main() {
     }
     // ------------------------------------------------
 
+    // --- LIST MISSING/UNUSED AUDIO FILES MODE ---
+    if (listMode) {
+        // Build set of expected audio filenames
+        const expectedFiles = new Set();
+        for (const word of allWords) {
+            expectedFiles.add(`${normalizeFilename(word)}.mp3`);
+        }
+        // List actual audio files
+        const actualFiles = new Set(fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3')));
+
+        // Missing: in expectedFiles but not in actualFiles
+        const missing = [];
+        for (const fname of expectedFiles) {
+            if (!actualFiles.has(fname)) missing.push(fname);
+        }
+        // Unused: in actualFiles but not in expectedFiles
+        const unused = [];
+        for (const fname of actualFiles) {
+            if (!expectedFiles.has(fname)) unused.push(fname);
+        }
+
+        console.log("=== Audio File Status ===");
+        console.log(`Missing audio files (${missing.length}):`);
+        if (missing.length) {
+            missing.forEach(f => console.log("  " + f));
+        } else {
+            console.log("  None");
+        }
+        console.log(`\nUnused audio files (${unused.length}):`);
+        if (unused.length) {
+            unused.forEach(f => console.log("  " + f));
+        } else {
+            console.log("  None");
+        }
+        process.exit(0);
+    }
+    // ------------------------------------------------
+
     // --- CLEANUP: Remove audio files that are no longer needed ---
     function cleanupUnusedAudioFiles() {
         const audioFiles = fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3'));
         let removed = 0;
         for (const file of audioFiles) {
-            const word = file.slice(0, -4); // Remove .mp3
-            if (!allWords.has(word)) {
+            // Remove .mp3, then try to find the original word by normalizing allWords
+            const base = file.slice(0, -4);
+            let found = false;
+            for (const w of allWords) {
+                if (normalizeFilename(w) === base) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
                 const filePath = path.join(audioDir, file);
                 fs.unlinkSync(filePath);
                 console.log(`Removed unused audio file: ${file}`);
@@ -103,8 +159,22 @@ async function main() {
         }
     }
 
+    // Normalize filename: underscores for spaces, ASCII for special chars.
+    function normalizeFilename(str) {
+        return str
+            .replaceAll(" ", "_")
+            .replaceAll("Ä", "AE")
+            .replaceAll("Ö", "OE")
+            .replaceAll("Ü", "UE")
+            .replaceAll("ä", "ae")
+            .replaceAll("ö", "oe")
+            .replaceAll("ü", "ue")
+            .replaceAll("ß", "SS")
+            .replace(/[^A-Za-z0-9_]/g, ""); // Remove any other non-ASCII chars
+    }
+
     async function generateAudioForWord(word) {
-        const fileName = `${word}.mp3`;
+        const fileName = `${normalizeFilename(word)}.mp3`;
         const filePath = path.join(audioDir, fileName);
 
         if (fs.existsSync(filePath)) {
@@ -112,11 +182,41 @@ async function main() {
             return;
         }
 
+        // Dynamically import TTS providers if not already loaded
+        async function getTTSModule(modulePath) {
+            try {
+                const mod = await import(modulePath);
+                if (mod && typeof mod.generateAudio === 'function') return mod;
+                if (mod && mod.default && typeof mod.default.generateAudio === 'function') return mod.default;
+                if (mod && mod.default && typeof mod.default === 'object' && typeof mod.default.generateAudio === 'function') return mod.default;
+            } catch (e) {
+                // ignore
+            }
+            // Fallback: try CommonJS require via createRequire
+            try {
+                const { createRequire } = await import('module');
+                const require = createRequire(import.meta.url);
+                const cjsmod = require(modulePath);
+                if (cjsmod && typeof cjsmod.generateAudio === 'function') return cjsmod;
+            } catch (e) {
+                // ignore
+            }
+            return null;
+        }
+        if (TTS_PROVIDER === 'openai' && !openai) {
+            openai = await getTTSModule('./openai.js');
+        }
+        if (TTS_PROVIDER !== 'openai' && !elevenlabs) {
+            elevenlabs = await getTTSModule('./elevenlabs.js');
+        }
+
         console.log(`Generating audio for "${word}" using ${TTS_PROVIDER}...`);
         try {
             if (TTS_PROVIDER === 'openai') {
+                if (!openai || typeof openai.generateAudio !== 'function') throw new Error('OpenAI TTS module not loaded');
                 await openai.generateAudio(word, filePath, OPENAI_VOICE);
             } else {
+                if (!elevenlabs || typeof elevenlabs.generateAudio !== 'function') throw new Error('ElevenLabs TTS module not loaded');
                 await elevenlabs.generateAudio(word, filePath, ELEVENLABS_VOICE);
             }
             console.log(`Successfully saved ${fileName}`);
@@ -160,7 +260,7 @@ async function main() {
         // Gather missing words only
         const missingWords = [];
         for (const word of allWords) {
-            const fileName = `${word}.mp3`;
+            const fileName = `${normalizeFilename(word)}.mp3`;
             const filePath = path.join(audioDir, fileName);
             if (!fs.existsSync(filePath)) {
                 missingWords.push(word);

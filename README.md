@@ -25,11 +25,15 @@
 4.  Drücke die entsprechende Taste auf deiner Tastatur. Die virtuelle Tastatur auf dem Bildschirm hilft dir dabei, die richtige Taste und den richtigen Finger zu finden.
 5.  Versuche, so genau und schnell wie möglich zu tippen, um zum nächsten Level zu gelangen!
 
-## Installation
+## Linux Bundles (rpm, deb)
 
-Es ist keine Installation erforderlich. Lade einfach die Projektdateien herunter und öffne die `src/index.html` in einem modernen Webbrowser, um loszulegen.
+Um eine Linux-Desktop-Anwendung als RPM- oder DEB-Paket zu bauen, verwende den folgenden Befehl im Projektverzeichnis:
 
----
+```bash
+npm run tauri build -- --bundles rpm,deb
+```
+
+Das erzeugt die Installationspakete im `src-tauri/target/release/bundle/`-Verzeichnis. Stelle sicher, dass alle Abhängigkeiten für Tauri und das Bauen von nativen Paketen installiert sind (siehe [Tauri Dokumentation](https://tauri.app/v1/guides/getting-started/prerequisites/)).
 
 ## Running a Simple Python Webserver for Local Testing
 

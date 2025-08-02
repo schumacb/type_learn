@@ -1,0 +1,15 @@
+[
+    {"text": "A wie Apfel", "icons": ["🍎"]}, {"text": "B wie Ball", "icons": ["⚽"]},
+    {"text": "C wie Computer", "icons": ["💻"]}, {"text": "D wie Daumen", "icons": ["👍"]},
+    {"text": "E wie Elefant", "icons": ["🐘"]}, {"text": "F wie Fisch", "icons": ["🐟"]},
+    {"text": "G wie Geist", "icons": ["👻"]}, {"text": "H wie Haus", "icons": ["🏠"]},
+    {"text": "I wie Igel", "icons": ["🦔"]}, {"text": "J wie Jacke", "icons": ["🧥"]},
+    {"text": "K wie Krone", "icons": ["👑"]}, {"text": "L wie Löwe", "icons": ["🦁"]},
+    {"text": "M wie Mond", "icons": ["🌙"]}, {"text": "N wie Nase", "icons": ["👃"]},
+    {"text": "O wie Orange", "icons": ["🍊"]}, {"text": "P wie Pilz", "icons": ["🍄"]},
+    {"text": "Q wie Qualle", "icons": ["🪼"]}, {"text": "R wie Rakete", "icons": ["🚀"]},
+    {"text": "S wie Sonne", "icons": ["☀️"]}, {"text": "T wie Tieger", "icons": ["🐯"]},
+    {"text": "U wie Uhr", "icons": ["🕐"]}, {"text": "V wie Vogel", "icons": ["🐦"]},
+    {"text": "W wie Wolf", "icons": ["🐺"]}, {"text": "X wie Xylophon", "icons": ["❌"]},
+    {"text": "Y wie Yacht", "icons": ["🛥️"]}, {"text": "Z wie Zebra", "icons": ["🦓"]}
+]

@@ -1,4 +1,5 @@
 {
-    "TTS_PROVIDER": "openai",
-    "OPENAI_VOICE": "fable"
+    "TTS_PROVIDER": "elevenlabs",
+    "OPENAI_VOICE": "fable",
+    "ELEVENLABS_VOICE": "TEViowKnW2MmpkujLKwI"
 }

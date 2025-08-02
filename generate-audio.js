@@ -48,19 +48,17 @@ if (!TTS_PROVIDER) {
 // --- CONFIGURATION ---
 // The API Key is now loaded securely from an environment variable
 const XI_API_KEY = process.env.XI_API_KEY;
-const VOICE_ID = "NBqeXKdZHweef6y0B67V";
 // --------------------
 
 // We wrap the entire script in an async function to use dynamic import() for node-fetch.
 async function main() {
     // Dynamically import node-fetch v3, which is an ES-only module.
     const { default: fetch } = await import('node-fetch');
-
     const audioDir = path.join(__dirname, 'audio');
     const dataDir = path.join(__dirname, 'data');
 
-    if (!XI_API_KEY) {
-        console.error("FATAL: XI_API_KEY is not defined. Please create a .env file and add your ElevenLabs API key.");
+    if (TTS_PROVIDER === 'elevenlabs' && !XI_API_KEY) {
+        console.error("FATAL: XI_API_KEY is not defined for ElevenLabs. Please add it to your .env file.");
         process.exit(1);
     }
     if (!fs.existsSync(audioDir)) {
@@ -85,6 +83,26 @@ async function main() {
     }
     // ------------------------------------------------
 
+    // --- CLEANUP: Remove audio files that are no longer needed ---
+    function cleanupUnusedAudioFiles() {
+        const audioFiles = fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3'));
+        let removed = 0;
+        for (const file of audioFiles) {
+            const word = file.slice(0, -4); // Remove .mp3
+            if (!allWords.has(word)) {
+                const filePath = path.join(audioDir, file);
+                fs.unlinkSync(filePath);
+                console.log(`Removed unused audio file: ${file}`);
+                removed++;
+            }
+        }
+        if (removed === 0) {
+            console.log("No unused audio files to remove.");
+        } else {
+            console.log(`Removed ${removed} unused audio file(s).`);
+        }
+    }
+
     async function generateAudioForWord(word) {
         const fileName = `${word}.mp3`;
         const filePath = path.join(audioDir, fileName);
@@ -107,15 +125,70 @@ async function main() {
         }
     }
 
+    // Helper: concurrency-limited pool
+    async function processWithConcurrencyLimit(items, worker, concurrency = 3) {
+        let index = 0;
+        let active = 0;
+        let results = [];
+        return new Promise((resolve, reject) => {
+            function next() {
+                if (index === items.length && active === 0) {
+                    resolve(Promise.all(results));
+                    return;
+                }
+                while (active < concurrency && index < items.length) {
+                    const i = index++;
+                    active++;
+                    const p = Promise.resolve(worker(items[i]))
+                        .catch(err => {
+                            // Log error but continue
+                            console.error(`Error processing item:`, err);
+                        })
+                        .finally(() => {
+                            active--;
+                            next();
+                        });
+                    results.push(p);
+                }
+            }
+            next();
+        });
+    }
+
     async function processAllWords() {
         console.log(`Found ${allWords.size} unique words to process.`);
+        // Gather missing words only
+        const missingWords = [];
         for (const word of allWords) {
-            await generateAudioForWord(word);
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            const fileName = `${word}.mp3`;
+            const filePath = path.join(audioDir, fileName);
+            if (!fs.existsSync(filePath)) {
+                missingWords.push(word);
+            }
         }
+        console.log(`Need to generate ${missingWords.length} audio files (missing).`);
+
+        if (missingWords.length === 0) {
+            console.log("No missing audio files. All files are up to date.");
+            return;
+        }
+
+        // Concurrency limit (now configurable via env, default 2 for ElevenLabs)
+        const CONCURRENCY = parseInt(process.env.AUDIO_GEN_CONCURRENCY, 10) || 2;
+        console.log(`Using concurrency limit: ${CONCURRENCY}`);
+        await processWithConcurrencyLimit(
+            missingWords,
+            async (word) => {
+                await generateAudioForWord(word);
+                // Optional: small delay to avoid hammering API
+                await new Promise(resolve => setTimeout(resolve, 500));
+            },
+            CONCURRENCY
+        );
         console.log("\nAll audio generation complete!");
     }
 
+    cleanupUnusedAudioFiles();
     await processAllWords();
 }
 

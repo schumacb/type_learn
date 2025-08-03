@@ -52,6 +52,7 @@ let speechSynthesis = window.speechSynthesis;
 let usedWords = [];
 let germanVoice = null;
 const audioCache = new Map();
+let currentSpokenAudio = null;
 
 // DOM elements
 const displayElement = document.getElementById('display');
@@ -104,6 +105,40 @@ async function loadGameData() {
         console.error("Fatal Error: Could not load game data.", error);
         displayElement.textContent = "Fehler beim Laden der Spieldaten!";
     }
+}
+
+// Global flag to block actions during intro
+let isLevelIntroPlaying = false;
+
+// Show level intro: name, pause, description, pause, then start level
+async function showLevelIntro(levelObj) {
+    isLevelIntroPlaying = true;
+    // Cancel any ongoing speech/audio
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    // Try to stop any playing HTML5 audio (best effort)
+    document.querySelectorAll('audio').forEach(a => { try { a.pause(); a.currentTime = 0; } catch {} });
+
+    if (!levelObj) {
+        isLevelIntroPlaying = false;
+        generateNewWord();
+        return;
+    }
+    // Show level name
+    displayElement.textContent = levelObj.name || "Level";
+    await speakWordAndWait(levelObj.name || "Level", true);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Show description
+    if (levelObj.description) {
+        displayElement.textContent = levelObj.description;
+        await speakWordAndWait(levelObj.description, true);
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    // Hide intro and start level
+    displayElement.textContent = "";
+    isLevelIntroPlaying = false;
+    generateNewWord();
 }
 
 function populateLevelSelector() {
@@ -214,6 +249,7 @@ function getWordsForLevel() {
 }
 
 function generateNewWord() {
+    if (isLevelIntroPlaying) return; // Block during intro
     const words = getWordsForLevel();
     if (!words || words.length === 0) return; // Safeguard
     if (usedWords.length >= words.length) usedWords = [];
@@ -225,7 +261,7 @@ function generateNewWord() {
     usedWords.push(wordIndex);
 
     // Use the consistent 'text' property from our JSON files
-    currentWord = selectedWord.text; 
+    currentWord = selectedWord.text;
     currentIcons = selectedWord.icons;
 
     currentIndex = 0;
@@ -245,12 +281,26 @@ function generateNewWord() {
         wordIconsElement.appendChild(iconElement);
     });
 
-    speakWord(currentWord);
+    speakWord(currentWord); // will not play if intro is running
     highlightNextKey();
 }
 
-async function speakWord(word) {
-    // Priority 1: Try to play the pre-generated local audio file.
+async function speakWordAndWait(word, force = false) {
+    // Only allow playback if not in intro, unless forced (for intro itself)
+    if (isLevelIntroPlaying && !force) return;
+
+    // Cancel any previous audio or TTS
+    if (currentSpokenAudio) {
+        try {
+            currentSpokenAudio.pause();
+            currentSpokenAudio.currentTime = 0;
+        } catch {}
+        currentSpokenAudio = null;
+    }
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
+
     // Normalize filename: underscores for spaces, ASCII for special chars.
     function normalizeFilename(str) {
         return str
@@ -262,7 +312,7 @@ async function speakWord(word) {
             .replaceAll("ö", "oe")
             .replaceAll("ü", "ue")
             .replaceAll("ß", "SS")
-            .replace(/[^A-Za-z0-9_]/g, ""); // Remove any other non-ASCII chars
+            .replace(/[^A-Za-z0-9_]/g, "");
     }
     const fileName = `${normalizeFilename(word).toLowerCase()}.mp3`;
     const localAudioPath = `./audio/${fileName}`;
@@ -271,35 +321,51 @@ async function speakWord(word) {
         const response = await fetch(localAudioPath);
         if (response.ok) {
             const audioBlob = await response.blob();
-            console.log(`Blob type for "${word}":`, audioBlob.type);
             if (!audioBlob.type.startsWith('audio/')) {
-                console.error(`Blob for "${word}" is not a valid audio type:`, audioBlob.type);
-            } else {
+                throw new Error("Not audio");
+            }
+            return await new Promise((resolve) => {
                 const audioUrl = URL.createObjectURL(audioBlob);
                 const audio = new Audio(audioUrl);
-                audio.addEventListener('ended', () => URL.revokeObjectURL(audioUrl));
+                currentSpokenAudio = audio;
+                audio.addEventListener('ended', () => {
+                    URL.revokeObjectURL(audioUrl);
+                    if (currentSpokenAudio === audio) currentSpokenAudio = null;
+                    resolve();
+                });
+                audio.addEventListener('error', () => {
+                    URL.revokeObjectURL(audioUrl);
+                    if (currentSpokenAudio === audio) currentSpokenAudio = null;
+                    resolve();
+                });
                 audio.play();
-                console.log(`Played "${word}" from local file: ${localAudioPath}`);
-                return;
-            }
-        } else {
-            console.warn(`Local file for "${word}" not found at ${localAudioPath} (${response.status}). Falling back to browser TTS.`);
+            });
         }
-    } catch (error) {
-        console.error(`Error loading local file for "${word}" from ${localAudioPath}:`, error);
+    } catch (e) {
+        // fallback to TTS
     }
 
-    // Priority 2: If local file fails, fall back to the browser's default voice.
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(word);
-    utterance.lang = 'de-DE';
-    utterance.rate = 0.8;
-    utterance.pitch = 1.1;
-    utterance.volume = 1.0;
-    if (germanVoice) {
-        utterance.voice = germanVoice;
-    }
-    speechSynthesis.speak(utterance);
+    // Fallback: browser TTS
+    return new Promise((resolve) => {
+        if (!window.speechSynthesis) return resolve();
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'de-DE';
+        utterance.rate = 0.8;
+        utterance.pitch = 1.1;
+        utterance.volume = 1.0;
+        if (germanVoice) {
+            utterance.voice = germanVoice;
+        }
+        utterance.onend = () => resolve();
+        utterance.onerror = () => resolve();
+        window.speechSynthesis.speak(utterance);
+    });
+}
+
+// Legacy: speakWord for compatibility (does not wait)
+function speakWord(word) {
+    speakWordAndWait(word, false);
 }
 
 function highlightNextKey() {
@@ -443,7 +509,7 @@ function playWordCompleteSound() {
     setTimeout(() => playSound(1046.50, 300, 'sine'), 450);
 }
 
-function levelUp() {
+async function levelUp() {
     playLevelUpFanfare();
     level++;
     if (level > gameLevels.length - 1) level = gameLevels.length - 1;
@@ -454,9 +520,10 @@ function levelUp() {
     usedWords = [];
     successMessage.style.display = 'block';
     setTimeout(() => { successMessage.style.display = 'none'; }, 2000);
+    await showLevelIntro(gameLevels[level]);
 }
 
-function levelDown() {
+async function levelDown() {
     level--;
     if (level < 0) level = 0;
     levelDisplayElement.textContent = level;
@@ -464,16 +531,17 @@ function levelDown() {
     progress = 0;
     progressElement.style.width = '0%';
     usedWords = [];
+    await showLevelIntro(gameLevels[level]);
 }
 
-function setLevel(newLevel) {
+async function setLevel(newLevel) {
     level = newLevel;
     levelDisplayElement.textContent = level;
     levelSelectElement.value = level;
     progress = 0;
     progressElement.style.width = '0%';
     usedWords = [];
-    generateNewWord();
+    await showLevelIntro(gameLevels[level]);
 }
 
 function createParticles(element) {
@@ -587,7 +655,7 @@ async function startGame(event) {
     if (event && event.target) {
         const targetTag = event.target.tagName.toUpperCase();
         if (['INPUT', 'SELECT', 'BUTTON'].includes(targetTag)) {
-            if (event.type === 'click') { displayElement.addEventListener('click', (e) => startGame(e), { once: true }); } 
+            if (event.type === 'click') { displayElement.addEventListener('click', (e) => startGame(e), { once: true }); }
             else if (event.type === 'keydown') { document.addEventListener('keydown', (e) => startGame(e), { once: true }); }
             return;
         }
@@ -606,7 +674,7 @@ async function startGame(event) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
     displayElement.style.cursor = "default";
-    generateNewWord();
+    await showLevelIntro(gameLevels[level]);
 }
 
 async function initGame() {
@@ -621,10 +689,10 @@ async function initGame() {
     levelDisplayElement.textContent = level;
     levelSelectElement.value = level;
     
-    // All button event listeners remain the same
-    prevLevelButton.addEventListener('click', () => { if (gameStarted) { levelDown(); generateNewWord(); } });
-    nextLevelButton.addEventListener('click', () => { if (gameStarted) { goToNextLevel(); generateNewWord(); } });
-    levelSelectElement.addEventListener('change', (e) => { if (gameStarted) { setLevel(parseInt(e.target.value)); } });
+    // Updated button event listeners to use async/await and not call generateNewWord directly
+    prevLevelButton.addEventListener('click', async () => { if (gameStarted) { await levelDown(); } });
+    nextLevelButton.addEventListener('click', async () => { if (gameStarted) { await levelUp(); } });
+    levelSelectElement.addEventListener('change', async (e) => { if (gameStarted) { await setLevel(parseInt(e.target.value)); } });
 }
 
 window.onload = initGame;

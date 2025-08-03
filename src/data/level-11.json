@@ -1,6 +1,6 @@
 {
-  "name": "Häufige Trigramme",
-  "description": "Übe das Tippen häufiger Buchstabenkombinationen.",
+  "name": "Häufige Buchstabenkombinationen",
+  "description": "Übe das Tippen von häufigen Buchstabenkombinationen. Diese kommen oft in Wörtern vor.",
   "enabledKeys": ["S", "C", "H", "T", "R", "E", "I", "A", "U", "N", "D", "G"],
   "caseSensitive": false,
   "items": [

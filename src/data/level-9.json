@@ -1,5 +1,6 @@
 {
-  "name": "Häufige Bigramme",
+  "name": "Häufige Buchstabenpaare",
+  "description": "Übe das Tippen von häufigen Buchstabenpaaren. Diese Kombinationen kommen oft in Wörtern vor.",
   "enabledKeys": ["C", "H", "S", "T", "E", "I", "A", "U", "G", "N", "D", "R"],
   "caseSensitive": false,
   "items": [

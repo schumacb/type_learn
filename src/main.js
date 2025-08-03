@@ -560,7 +560,7 @@ async function levelUp(showSuccessMessage = true) {
         }
         // Show message in display area and word-icons area
         displayElement.textContent = msg.text;
-        wordIconsElement.innerHTML = `<span class="success-icon">${msg.icon}</span>`;
+        wordIconsElement.innerHTML = `<div class="icon">${msg.icon}</div>`;
 
         // Play audio for the message and wait for it to finish
         await playSuccessAudio(msg.text);

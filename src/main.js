@@ -3,7 +3,7 @@ const keyboardLayout = [
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'ß'],
     ['Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', 'Ü'],
     ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ö', 'Ä'],
-    ['Y', 'X', 'C', 'V', 'B', 'N', 'M'],
+    ['Y', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.'],
     [' '] // Space bar
 ];
 
@@ -34,6 +34,7 @@ const fingerMap = {
     'Ä': 'kleiner',
     'Y': 'kleiner', 'X': 'ring', 'C': 'mittel', 'V': 'zeige',
     'B': 'zeige', 'N': 'zeige', 'M': 'zeige',
+    ',': 'kleiner', '.': 'kleiner',
     ' ': 'zeige'
 };
 
@@ -678,21 +679,31 @@ async function startGame(event) {
 }
 
 async function initGame() {
-    displayElement.textContent = "Lade Spieldaten...";
+    displayElement.textContent = "Klick oder Taste drücken, um zu starten";
     await loadGameData(); // Load data as soon as the page opens
 
     initKeyboard();
-    await startGame();
 
     correctElement.textContent = correctCount;
     errorsElement.textContent = errorCount;
     levelDisplayElement.textContent = level;
     levelSelectElement.value = level;
-    
+
     // Updated button event listeners to use async/await and not call generateNewWord directly
     prevLevelButton.addEventListener('click', async () => { if (gameStarted) { await levelDown(); } });
     nextLevelButton.addEventListener('click', async () => { if (gameStarted) { await levelUp(); } });
     levelSelectElement.addEventListener('change', async (e) => { if (gameStarted) { await setLevel(parseInt(e.target.value)); } });
+
+    // Click or keydown anywhere to start
+    function startOnUserAction() {
+        if (!gameStarted) {
+            startGame();
+        }
+        document.removeEventListener('click', startOnUserAction);
+        document.removeEventListener('keydown', startOnUserAction);
+    }
+    document.addEventListener('click', startOnUserAction);
+    document.addEventListener('keydown', startOnUserAction);
 }
 
 window.onload = initGame;

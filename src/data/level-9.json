@@ -1,0 +1,17 @@
+{
+  "name": "Häufige Bigramme",
+  "enabledKeys": ["C", "H", "S", "T", "E", "I", "A", "U", "G", "N", "D", "R"],
+  "caseSensitive": false,
+  "items": [
+    {"text": "ch", "icons": ["☀️", "🏠"]},
+    {"text": "st", "icons": ["☀️", "🐯"]},
+    {"text": "ei", "icons": ["🐘", "🦔"]},
+    {"text": "au", "icons": ["🍎", "🕐"]},
+    {"text": "ie", "icons": ["🦔", "🐘"]},
+    {"text": "er", "icons": ["🐘", "🚀"]},
+    {"text": "en", "icons": ["🐘", "👃"]},
+    {"text": "nd", "icons": ["👃", "👍"]},
+    {"text": "te", "icons": ["🐯", "🐘"]},
+    {"text": "ge", "icons": ["👻", "🐘"]}
+  ]
+}

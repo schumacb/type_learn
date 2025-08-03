@@ -1,12 +1,27 @@
-[
-    {"text": "FREUNDE", "icons": ["🤝"]}, {"text": "FAMILIE", "icons": ["👫"]},
-    {"text": "SCHULE", "icons": ["🏫"]}, {"text": "LESEN", "icons": ["📖"]},
-    {"text": "SCHREIBEN", "icons": ["✏️"]}, {"text": "RECHNEN", "icons": ["🔢"]},
-    {"text": "MALEN", "icons": ["🎨"]}, {"text": "SPIELEN", "icons": ["🧸"]},
-    {"text": "TURNEN", "icons": ["🤸"]}, {"text": "SCHWIMMEN", "icons": ["🏊"]},
-    {"text": "SCHLAFEN", "icons": ["😴"]}, {"text": "ESSEN", "icons": ["🍽️"]},
-    {"text": "TRINKEN", "icons": ["🥤"]}, {"text": "SAUBER", "icons": ["🧼"]},
-    {"text": "GUTEN MORGEN", "icons": ["👋", "☀️"]}, {"text": "DANKE", "icons": ["🙏"]},
-    {"text": "BITTE", "icons": ["🤲"]}, {"text": "JA", "icons": ["👍"]},
-    {"text": "NEIN", "icons": ["👎"]}
-]
+{
+  "name": "Komplette Mittel- und obere Reihe",
+  "description": "Lerne alle Buchstaben der Mittel- und oberen Reihe mit beiden Händen zu tippen.",
+  "enabledKeys": ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Q", "W", "E", "R", "T", "Z", "U", "I", "O", "P"],
+  "caseSensitive": false,
+  "items": [
+    {"text": "A", "icons": ["🍎"]},
+    {"text": "S", "icons": ["☀️"]},
+    {"text": "D", "icons": ["👍"]},
+    {"text": "F", "icons": ["🐟"]},
+    {"text": "G", "icons": ["👻"]},
+    {"text": "H", "icons": ["🏠"]},
+    {"text": "J", "icons": ["🧥"]},
+    {"text": "K", "icons": ["👑"]},
+    {"text": "L", "icons": ["🦁"]},
+    {"text": "Q", "icons": ["🪼"]},
+    {"text": "W", "icons": ["🐺"]},
+    {"text": "E", "icons": ["🐘"]},
+    {"text": "R", "icons": ["🚀"]},
+    {"text": "T", "icons": ["🐯"]},
+    {"text": "Z", "icons": ["🦓"]},
+    {"text": "U", "icons": ["🕐"]},
+    {"text": "I", "icons": ["🦔"]},
+    {"text": "O", "icons": ["🍊"]},
+    {"text": "P", "icons": ["🍄"]}
+  ]
+}

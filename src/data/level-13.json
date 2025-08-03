@@ -1,0 +1,19 @@
+{
+  "name": "Alltagswörter und Phrasen",
+  "enabledKeys": [
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "V", "W"
+  ],
+  "caseSensitive": false,
+  "items": [
+    {"text": "FREUNDE", "icons": ["🤝"]}, {"text": "FAMILIE", "icons": ["👫"]},
+    {"text": "SCHULE", "icons": ["🏫"]}, {"text": "LESEN", "icons": ["📖"]},
+    {"text": "SCHREIBEN", "icons": ["✏️"]}, {"text": "RECHNEN", "icons": ["🔢"]},
+    {"text": "MALEN", "icons": ["🎨"]}, {"text": "SPIELEN", "icons": ["🧸"]},
+    {"text": "TURNEN", "icons": ["🤸"]}, {"text": "SCHWIMMEN", "icons": ["🏊"]},
+    {"text": "SCHLAFEN", "icons": ["😴"]}, {"text": "ESSEN", "icons": ["🍽️"]},
+    {"text": "TRINKEN", "icons": ["🥤"]}, {"text": "SAUBER", "icons": ["🧼"]},
+    {"text": "GUTEN MORGEN", "icons": ["👋", "☀️"]}, {"text": "DANKE", "icons": ["🙏"]},
+    {"text": "BITTE", "icons": ["🤲"]}, {"text": "JA", "icons": ["👍"]},
+    {"text": "NEIN", "icons": ["👎"]}
+  ]
+}

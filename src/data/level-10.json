@@ -1,0 +1,18 @@
+{
+  "name": "Einfache Silben",
+  "description": "Übe das Tippen von einfachen Silben.",
+  "enabledKeys": ["L", "A", "E", "I", "O", "U", "M"],
+  "caseSensitive": false,
+  "items": [
+    {"text": "la", "icons": ["🦁", "🍎"]},
+    {"text": "le", "icons": ["🦁", "🐘"]},
+    {"text": "li", "icons": ["🦁", "🦔"]},
+    {"text": "lo", "icons": ["🦁", "🍊"]},
+    {"text": "lu", "icons": ["🦁", "🕐"]},
+    {"text": "ma", "icons": ["🌙", "🍎"]},
+    {"text": "me", "icons": ["🌙", "🐘"]},
+    {"text": "mi", "icons": ["🌙", "🦔"]},
+    {"text": "mo", "icons": ["🌙", "🍊"]},
+    {"text": "mu", "icons": ["🌙", "🕐"]}
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Häufige Trigramme",
+  "description": "Übe das Tippen häufiger Buchstabenkombinationen.",
+  "enabledKeys": ["S", "C", "H", "T", "R", "E", "I", "A", "U", "N", "D", "G"],
+  "caseSensitive": false,
+  "items": [
+    {"text": "sch", "icons": ["☀️", "💻", "🏠"]},
+    {"text": "str", "icons": ["☀️", "🐯", "🚀"]},
+    {"text": "eis", "icons": ["🐘", "🦔", "☀️"]},
+    {"text": "aus", "icons": ["🍎", "🕐", "☀️"]},
+    {"text": "und", "icons": ["🕐", "👃", "👍"]},
+    {"text": "der", "icons": ["👍", "🐘", "🚀"]}
+  ]
+}

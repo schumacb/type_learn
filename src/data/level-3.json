@@ -1,28 +1,13 @@
-[
-    {"text": "A", "icons": ["🍎"]},
-    {"text": "B", "icons": ["⚽"]},
-    {"text": "C", "icons": ["💻"]},
-    {"text": "D", "icons": ["👍"]},
-    {"text": "E", "icons": ["🐘"]},
-    {"text": "F", "icons": ["🐟"]},
-    {"text": "G", "icons": ["👻"]},
-    {"text": "H", "icons": ["🏠"]},
-    {"text": "I", "icons": ["🦔"]},
-    {"text": "J", "icons": ["🧥"]},
-    {"text": "K", "icons": ["👑"]},
-    {"text": "L", "icons": ["🦁"]},
-    {"text": "M", "icons": ["🌙"]},
-    {"text": "N", "icons": ["👃"]},
-    {"text": "O", "icons": ["🍊"]},
-    {"text": "P", "icons": ["🍄"]},
+{
+  "name": "Linke Hand obere Reihe",
+  "description": "Lerne die Buchstaben der linken Hand auf der oberen Reihe zu tippen.",
+  "enabledKeys": ["Q", "W", "E", "R", "T"],
+  "caseSensitive": false,
+  "items": [
     {"text": "Q", "icons": ["🪼"]},
-    {"text": "R", "icons": ["🚀"]},
-    {"text": "S", "icons": ["☀️"]},
-    {"text": "T", "icons": ["🐯"]},
-    {"text": "U", "icons": ["🕐"]},
-    {"text": "V", "icons": ["🐦"]},
     {"text": "W", "icons": ["🐺"]},
-    {"text": "X", "icons": ["❌"]},
-    {"text": "Y", "icons": ["🛥️"]},
-    {"text": "Z", "icons": ["🦓"]}
-]
+    {"text": "E", "icons": ["🐘"]},
+    {"text": "R", "icons": ["🚀"]},
+    {"text": "T", "icons": ["🐯"]}
+  ]
+}

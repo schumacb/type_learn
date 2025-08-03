@@ -71,18 +71,52 @@ let audioContext;
 
 async function loadGameData() {
     try {
-        const levelCount = levelSelectElement.options.length;
-        const fetchPromises = [];
-        for (let i = 0; i < levelCount; i++) {
-            fetchPromises.push(fetch(`./data/level-${i}.json`).then(res => res.json()));
+        // Dynamically determine the number of level files by trying to fetch until a 404 is hit
+        let i = 0;
+        gameLevels = [];
+        while (true) {
+            try {
+                const res = await fetch(`./data/level-${i}.json`);
+                if (!res.ok) break;
+                const contentType = res.headers.get("content-type") || "";
+                console.log(`Loading level file: level-${i}.json (status: ${res.status}, content-type: ${contentType})`);
+                if (!contentType.includes("application/json")) {
+                    console.warn(`Skipping level-${i}.json: not JSON (content-type: ${contentType})`);
+                    break;
+                }
+                try {
+                    const levelObj = await res.json();
+                    gameLevels.push(levelObj);
+                } catch (e) {
+                    console.error("Error parsing level JSON for level-" + i + ".json:", e);
+                }
+                i++;
+            } catch (e) {
+                break;
+            }
         }
-        // Wait for all files to be fetched and parsed concurrently
-        gameLevels = await Promise.all(fetchPromises);
-        console.log("All game data loaded successfully.");
+        if (gameLevels.length === 0) {
+            throw new Error("No level files found.");
+        }
+        console.log("Loaded " + gameLevels.length + " level files.");
+        populateLevelSelector();
     } catch (error) {
         console.error("Fatal Error: Could not load game data.", error);
         displayElement.textContent = "Fehler beim Laden der Spieldaten!";
     }
+}
+
+function populateLevelSelector() {
+    levelSelectElement.innerHTML = "";
+    gameLevels.forEach((levelObj, idx) => {
+        let name = (levelObj && levelObj.name) ? levelObj.name : `Level ${idx}`;
+        let desc = (levelObj && levelObj.description) ? levelObj.description : "";
+        const option = document.createElement("option");
+        option.value = idx;
+        option.textContent = `${idx} - ${name}`;
+        if (desc) option.title = desc;
+        levelSelectElement.appendChild(option);
+    });
 }
 
 // Helper function to create a single key element
@@ -110,7 +144,7 @@ function createKeyElement(key) {
 
 function goToNextLevel() {
     level++;
-    if (level > 5) level = 5;
+    if (level > gameLevels.length - 1) level = gameLevels.length - 1;
     levelDisplayElement.textContent = level;
     levelSelectElement.value = level;
     progress = 0;
@@ -166,8 +200,17 @@ function initKeyboard() {
     keyboardElement.appendChild(spaceRowElement);
 }
 
+function getCurrentLevelObj() {
+    return gameLevels[level] || {};
+}
+
 function getWordsForLevel() {
-    return gameLevels[level] || [];
+    const levelObj = getCurrentLevelObj();
+    if (Array.isArray(levelObj)) {
+        // Legacy support
+        return levelObj;
+    }
+    return Array.isArray(levelObj.items) ? levelObj.items : [];
 }
 
 function generateNewWord() {
@@ -186,7 +229,13 @@ function generateNewWord() {
     currentIcons = selectedWord.icons;
 
     currentIndex = 0;
-    displayElement.textContent = currentWord.split('').map((char, i) => i === currentIndex ? `[${char}]` : char).join('');
+    const levelObj = getCurrentLevelObj();
+    const caseSensitive = levelObj.caseSensitive === true;
+    let displayWord = currentWord;
+    if (!caseSensitive) {
+        displayWord = displayWord.toUpperCase();
+    }
+    displayElement.textContent = displayWord.split('').map((char, i) => i === currentIndex ? `[${char}]` : char).join('');
     wordIconsElement.innerHTML = '';
     (currentIcons || []).forEach((icon, i) => { // Added safeguard for missing icons
         const iconElement = document.createElement('div');
@@ -215,7 +264,7 @@ async function speakWord(word) {
             .replaceAll("ß", "SS")
             .replace(/[^A-Za-z0-9_]/g, ""); // Remove any other non-ASCII chars
     }
-    const fileName = `${normalizeFilename(word)}.mp3`;
+    const fileName = `${normalizeFilename(word).toLowerCase()}.mp3`;
     const localAudioPath = `./audio/${fileName}`;
 
     try {
@@ -313,8 +362,25 @@ function handleKeyPress(key) {
         setTimeout(() => keyElement.classList.remove('active'), 150);
     }
 
-    // Check if the key matches the current character
-    if (key === currentWord[currentIndex]) {
+    // Check if the key is allowed in this level
+    const levelObj = getCurrentLevelObj();
+    const enabledKeys = Array.isArray(levelObj.enabledKeys) ? levelObj.enabledKeys : null;
+    const caseSensitive = levelObj.caseSensitive === true;
+
+    let keyToCheck = key;
+    let charToCheck = currentWord[currentIndex];
+
+    if (!caseSensitive) {
+        keyToCheck = keyToCheck.toUpperCase();
+        charToCheck = charToCheck.toUpperCase();
+    }
+
+    if (enabledKeys && !enabledKeys.includes(keyToCheck)) {
+        // Ignore keys not enabled for this level
+        return;
+    }
+
+    if (keyToCheck === charToCheck) {
         // --- CORRECT KEY PRESS ---
         correctCount++;
         correctElement.textContent = correctCount;
@@ -359,7 +425,13 @@ function updateDisplayAndCheckState() {
     } else {
         // Just a correct key press
         playSound(783.99, 150, 'triangle');
-        displayElement.textContent = currentWord.split('').map((char, i) => i === currentIndex ? `[${char}]` : char).join('');
+        const levelObj = getCurrentLevelObj();
+        const caseSensitive = levelObj.caseSensitive === true;
+        let displayWord = currentWord;
+        if (!caseSensitive) {
+            displayWord = displayWord.toUpperCase();
+        }
+        displayElement.textContent = displayWord.split('').map((char, i) => i === currentIndex ? `[${char}]` : char).join('');
         highlightNextKey();
     }
 }
@@ -374,7 +446,7 @@ function playWordCompleteSound() {
 function levelUp() {
     playLevelUpFanfare();
     level++;
-    if (level > 5) level = 5;
+    if (level > gameLevels.length - 1) level = gameLevels.length - 1;
     levelDisplayElement.textContent = level;
     levelSelectElement.value = level;
     progress = 0;

@@ -1,4 +1,9 @@
-[
+{
+  "name": "Komplette Mittelreihe",
+  "description": "Lerne alle Buchstaben der Mittelreihe mit beiden Händen zu tippen.",
+  "enabledKeys": ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+  "caseSensitive": false,
+  "items": [
     {"text": "A", "icons": ["🍎"]},
     {"text": "S", "icons": ["☀️"]},
     {"text": "D", "icons": ["👍"]},
@@ -7,12 +12,6 @@
     {"text": "H", "icons": ["🏠"]},
     {"text": "J", "icons": ["🧥"]},
     {"text": "K", "icons": ["👑"]},
-    {"text": "L", "icons": ["🦁"]},
-    {"text": "Y", "icons": ["🛥️"]},
-    {"text": "X", "icons": ["❌"]},
-    {"text": "C", "icons": ["💻"]},
-    {"text": "V", "icons": ["🐦"]},
-    {"text": "B", "icons": ["⚽"]},
-    {"text": "N", "icons": ["👃"]},
-    {"text": "M", "icons": ["🌙"]}
-]
+    {"text": "L", "icons": ["🦁"]}
+  ]
+}

@@ -1,21 +1,12 @@
-[
-    {"text": "A", "icons": ["🍎"]},
-    {"text": "S", "icons": ["☀️"]},
-    {"text": "D", "icons": ["👍"]},
-    {"text": "F", "icons": ["🐟"]},
-    {"text": "G", "icons": ["👻"]},
+{
+  "name": "Rechte Hand Mittelreihe",
+  "description": "Lerne die Buchstaben der rechten Hand auf der Mittelreihe zu tippen.",
+  "enabledKeys": ["H", "J", "K", "L"],
+  "caseSensitive": false,
+  "items": [
     {"text": "H", "icons": ["🏠"]},
     {"text": "J", "icons": ["🧥"]},
     {"text": "K", "icons": ["👑"]},
-    {"text": "L", "icons": ["🦁"]},
-    {"text": "Q", "icons": ["🪼"]},
-    {"text": "W", "icons": ["🐺"]},
-    {"text": "E", "icons": ["🐘"]},
-    {"text": "R", "icons": ["🚀"]},
-    {"text": "T", "icons": ["🐯"]},
-    {"text": "Z", "icons": ["🦓"]},
-    {"text": "U", "icons": ["🕐"]},
-    {"text": "I", "icons": ["🦔"]},
-    {"text": "O", "icons": ["🍊"]},
-    {"text": "P", "icons": ["🍄"]}
-]
+    {"text": "L", "icons": ["🦁"]}
+  ]
+}

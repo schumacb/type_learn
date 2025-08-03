@@ -6,27 +6,13 @@
         }
 
         body {
-            background: linear-gradient(135deg, #2c3e50, #4c5c96); /* The "Night Sky" gradient */
+            background: linear-gradient(0deg, #2c3e50, #4c5c96); /* The "Night Sky" gradient */
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
             overflow-x: hidden;
-        }
-
-        .container {
-            background: rgba(0, 0, 0, 0.2); /* Dark, semi-transparent base */
-            backdrop-filter: blur(10px); /* A stronger blur for the main container */
-            border: 1px solid rgba(255, 255, 255, 0.1); /* A subtle edge highlight */
-            border-radius: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 900px;
-            padding: 25px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
         }
 
         h1 {
@@ -141,7 +127,7 @@
             border: none; /* Remove the old border */
             border-radius: 15px;
             padding: 20px;
-            margin: 25px 0;
+            margin: 0px 0;
             min-height: 120px;
             font-size: 2.5rem;
             display: flex;
@@ -161,7 +147,8 @@
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin: 15px 0;
+            margin-top: 5px;
+            margin-bottom: 0;
             flex-wrap: wrap;
             min-height: 80px;
         }

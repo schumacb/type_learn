@@ -76,30 +76,45 @@ async function main() {
     }
 
     // --- NEW: Load all words from the JSON files ---
-    const allWords = new Set();
-    try {
-        const dataFiles = fs.readdirSync(dataDir).filter(file => file.endsWith('.json'));
-        for (const file of dataFiles) {
-            const filePath = path.join(dataDir, file);
-            const fileContent = fs.readFileSync(filePath, 'utf-8');
-            const levelData = JSON.parse(fileContent);
-            levelData.forEach(item => {
-                allWords.add(item.text);
-            });
+    function collectAllWordsAndAudioFilenames() {
+        const allWords = new Set();
+        const expectedFiles = new Set();
+        try {
+            const dataFiles = fs.readdirSync(dataDir).filter(file => file.endsWith('.json'));
+            for (const file of dataFiles) {
+                const filePath = path.join(dataDir, file);
+                const fileContent = fs.readFileSync(filePath, 'utf-8');
+                const levelData = JSON.parse(fileContent);
+                if (Array.isArray(levelData)) {
+                    // Legacy format: array of items
+                    levelData.forEach(item => {
+                        allWords.add(item.text);
+                    });
+                } else if (levelData && Array.isArray(levelData.items)) {
+                    // New format: { items: [...] }
+                    if (levelData.name) allWords.add(levelData.name);
+                    if (levelData.description) allWords.add(levelData.description);
+                    levelData.items.forEach(item => {
+                        allWords.add(item.text);
+                    });
+                }
+            }
+            for (const word of allWords) {
+                expectedFiles.add(`${normalizeFilename(word).toLowerCase()}.mp3`);
+            }
+        } catch (error) {
+            console.error("Could not read data files from the 'data' directory.", error);
+            process.exit(1); // Exit if we can't read the data
         }
-    } catch (error) {
-        console.error("Could not read data files from the 'data' directory.", error);
-        process.exit(1); // Exit if we can't read the data
+        return { allWords, expectedFiles };
     }
+    const { allWords, expectedFiles } = collectAllWordsAndAudioFilenames();
     // ------------------------------------------------
 
     // --- LIST MISSING/UNUSED AUDIO FILES MODE ---
     if (listMode) {
         // Build set of expected audio filenames
-        const expectedFiles = new Set();
-        for (const word of allWords) {
-            expectedFiles.add(`${normalizeFilename(word)}.mp3`);
-        }
+        /* removed: expectedFiles logic is now in collectAllWordsAndAudioFilenames */
         // List actual audio files
         const actualFiles = new Set(fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3')));
 
@@ -136,16 +151,7 @@ async function main() {
         const audioFiles = fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3'));
         let removed = 0;
         for (const file of audioFiles) {
-            // Remove .mp3, then try to find the original word by normalizing allWords
-            const base = file.slice(0, -4);
-            let found = false;
-            for (const w of allWords) {
-                if (normalizeFilename(w) === base) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
+            if (!expectedFiles.has(file)) {
                 const filePath = path.join(audioDir, file);
                 fs.unlinkSync(filePath);
                 console.log(`Removed unused audio file: ${file}`);
@@ -174,7 +180,7 @@ async function main() {
     }
 
     async function generateAudioForWord(word) {
-        const fileName = `${normalizeFilename(word)}.mp3`;
+        const fileName = `${normalizeFilename(word).toLowerCase()}.mp3`;
         const filePath = path.join(audioDir, fileName);
 
         if (fs.existsSync(filePath)) {

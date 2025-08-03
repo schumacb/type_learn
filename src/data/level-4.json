@@ -1,15 +1,13 @@
-[
-    {"text": "HALLO", "icons": ["👋"]}, {"text": "MAMA", "icons": ["👩"]},
-    {"text": "PAPA", "icons": ["�"]}, {"text": "AUTO", "icons": ["�"]},
-    {"text": "HAUS", "icons": ["🏠"]}, {"text": "BAUM", "icons": ["�"]},
-    {"text": "TIER", "icons": ["🐾"]}, {"text": "KIND", "icons": ["�"]},
-    {"text": "SPIEL", "icons": ["🧸"]}, {"text": "BUCH", "icons": ["�"]},
-    {"text": "SCHULE", "icons": ["🏫"]}, {"text": "FREUND", "icons": ["🧑‍🤝‍�"]},
-    {"text": "LIEBE", "icons": ["❤️"]}, {"text": "HUND", "icons": ["�"]},
-    {"text": "KATZE", "icons": ["�"]}, {"text": "VOGEL", "icons": ["🐦"]},
-    {"text": "BLUME", "icons": ["🌸"]}, {"text": "WASSER", "icons": ["�"]},
-    {"text": "BROT", "icons": ["🍞"]}, {"text": "MILCH", "icons": ["�"]},
-    {"text": "FISCH", "icons": ["�"]}, {"text": "SONNE", "icons": ["☀️"]},
-    {"text": "MOND", "icons": ["�"]}, {"text": "STERN", "icons": ["⭐"]},
-    {"text": "WOLKE", "icons": ["☁️"]}
-]
+{
+  "name": "Rechte Hand obere Reihe",
+  "description": "Lerne die Buchstaben der rechten Hand auf der oberen Reihe zu tippen.",
+  "enabledKeys": ["Z", "U", "I", "O", "P"],
+  "caseSensitive": false,
+  "items": [
+    {"text": "Z", "icons": ["🦓"]},
+    {"text": "U", "icons": ["🕐"]},
+    {"text": "I", "icons": ["🦔"]},
+    {"text": "O", "icons": ["🍊"]},
+    {"text": "P", "icons": ["🍄"]}
+  ]
+}

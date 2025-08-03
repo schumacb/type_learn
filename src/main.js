@@ -199,6 +199,23 @@ function initKeyboard() {
     const rightKeyboardHalf = document.createElement('div');
     rightKeyboardHalf.className = 'keyboard-half';
 
+    // Get enabledKeys for the current level (if any)
+    let enabledKeys = null;
+    const levelObj = getCurrentLevelObj();
+    if (Array.isArray(levelObj.enabledKeys)) {
+        enabledKeys = levelObj.enabledKeys.map(k => k.toUpperCase());
+    }
+
+    function createKeyWithDisable(key) {
+        const keyElement = createKeyElement(key);
+        if (enabledKeys && !enabledKeys.includes(key.toUpperCase())) {
+            keyElement.classList.add('disabled');
+            keyElement.style.pointerEvents = 'none';
+            keyElement.style.opacity = '0.5';
+        }
+        return keyElement;
+    }
+
     keyboardLayout.forEach((row, rowIndex) => {
         if (row[0] === ' ') return;
         const offset = rowOffsets[rowIndex] || 0;
@@ -210,7 +227,7 @@ function initKeyboard() {
         leftRowElement.style.justifyContent = 'flex-end';
         leftRowElement.style.position = 'relative';
         leftRowElement.style.left = `${offset}px`;
-        leftKeys.forEach(key => leftRowElement.appendChild(createKeyElement(key)));
+        leftKeys.forEach(key => leftRowElement.appendChild(createKeyWithDisable(key)));
         leftKeyboardHalf.appendChild(leftRowElement);
 
         const rightKeys = row.slice(splitPoint);
@@ -219,7 +236,7 @@ function initKeyboard() {
         rightRowElement.style.justifyContent = 'flex-start';
         rightRowElement.style.position = 'relative';
         rightRowElement.style.left = `${offset}px`;
-        rightKeys.forEach(key => rightRowElement.appendChild(createKeyElement(key)));
+        rightKeys.forEach(key => rightRowElement.appendChild(createKeyWithDisable(key)));
         rightKeyboardHalf.appendChild(rightRowElement);
     });
 
@@ -231,7 +248,7 @@ function initKeyboard() {
     const spaceRowElement = document.createElement('div');
     spaceRowElement.className = 'keyboard-row';
     spaceRowElement.style.justifyContent = 'center';
-    const spaceKeyElement = createKeyElement(spaceRowLayout[0]);
+    const spaceKeyElement = createKeyWithDisable(spaceRowLayout[0]);
     spaceRowElement.appendChild(spaceKeyElement);
     keyboardElement.appendChild(spaceRowElement);
 }
@@ -444,6 +461,7 @@ function handleKeyPress(key) {
 
     if (enabledKeys && !enabledKeys.includes(keyToCheck)) {
         // Ignore keys not enabled for this level
+        // No error is counted, no feedback is given
         return;
     }
 

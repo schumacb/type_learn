@@ -1,8 +1,15 @@
 [
-    {"text": "ICH BIN DREI JAHRE ALT", "icons": ["👶", "3️⃣", "🎂"]},
-    {"text": "MEINE LIEBLINGSFARBE IST BLAU", "icons": ["🎨", "💙"]},
-    {"text": "ICH HABE EINEN HUND", "icons": ["🐶", "🏠"]}, {"text": "WIR GEHEN IN DEN PARK", "icons": ["🚶", "🌳"]},
-    {"text": "ICH ESSE GERN EIS", "icons": ["😋", "🍦"]}, {"text": "MEIN FREUND HEIßT MAX", "icons": ["🤝", "👦"]},
-    {"text": "WIR SPIELEN FUSSBALL", "icons": ["⚽", "🏃"]}, {"text": "ICH LERNE LESEN UND SCHREIBEN", "icons": ["📚", "✏️"]},
-    {"text": "MEINE MUTTER BACKT KUCHEN", "icons": ["👩", "🍰"]}, {"text": "DER VOGEL SINGT IM BAUM", "icons": ["🐦", "🌳"]}
+    {"text": "HALLO", "icons": ["👋"]}, {"text": "MAMA", "icons": ["👩"]},
+    {"text": "PAPA", "icons": ["�"]}, {"text": "AUTO", "icons": ["�"]},
+    {"text": "HAUS", "icons": ["🏠"]}, {"text": "BAUM", "icons": ["�"]},
+    {"text": "TIER", "icons": ["🐾"]}, {"text": "KIND", "icons": ["�"]},
+    {"text": "SPIEL", "icons": ["🧸"]}, {"text": "BUCH", "icons": ["�"]},
+    {"text": "SCHULE", "icons": ["🏫"]}, {"text": "FREUND", "icons": ["🧑‍🤝‍�"]},
+    {"text": "LIEBE", "icons": ["❤️"]}, {"text": "HUND", "icons": ["�"]},
+    {"text": "KATZE", "icons": ["�"]}, {"text": "VOGEL", "icons": ["🐦"]},
+    {"text": "BLUME", "icons": ["🌸"]}, {"text": "WASSER", "icons": ["�"]},
+    {"text": "BROT", "icons": ["🍞"]}, {"text": "MILCH", "icons": ["�"]},
+    {"text": "FISCH", "icons": ["�"]}, {"text": "SONNE", "icons": ["☀️"]},
+    {"text": "MOND", "icons": ["�"]}, {"text": "STERN", "icons": ["⭐"]},
+    {"text": "WOLKE", "icons": ["☁️"]}
 ]

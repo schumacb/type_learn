@@ -38,7 +38,20 @@ const fingerMap = {
     ' ': 'zeige'
 };
 
+function normalizeFilename(str) {
+    return str
+        .replaceAll(" ", "_")
+        .replaceAll("Ä", "AE")
+        .replaceAll("Ö", "OE")
+        .replaceAll("Ü", "UE")
+        .replaceAll("ä", "ae")
+        .replaceAll("ö", "oe")
+        .replaceAll("ü", "ue")
+        .replaceAll("ß", "SS")
+        .replace(/[^A-Za-z0-9_]/g, "");
+}
 let gameLevels = [];
+let successMessages = [];
 
 // Current game state
 let currentWord = "";
@@ -62,7 +75,6 @@ const progressElement = document.getElementById('progress');
 const correctElement = document.getElementById('correct');
 const errorsElement = document.getElementById('errors');
 const levelDisplayElement = document.getElementById('levelDisplay');
-const successMessage = document.getElementById('successMessage');
 const wordIconsElement = document.getElementById('wordIcons');
 const levelSelectElement = document.getElementById('levelSelect');
 const prevLevelButton = document.getElementById('prevLevel');
@@ -73,6 +85,21 @@ let audioContext;
 
 async function loadGameData() {
     try {
+        // Load success messages
+        try {
+            const res = await fetch('./data/success-messages.json');
+            if (res.ok) {
+                successMessages = await res.json();
+                console.log("Loaded success messages:", successMessages.length);
+            } else {
+                console.warn("Could not load success-messages.json");
+                successMessages = [];
+            }
+        } catch (e) {
+            console.warn("Error loading success-messages.json:", e);
+            successMessages = [];
+        }
+
         // Dynamically determine the number of level files by trying to fetch until a 404 is hit
         let i = 0;
         gameLevels = [];
@@ -319,19 +346,6 @@ async function speakWordAndWait(word, force = false) {
         window.speechSynthesis.cancel();
     }
 
-    // Normalize filename: underscores for spaces, ASCII for special chars.
-    function normalizeFilename(str) {
-        return str
-            .replaceAll(" ", "_")
-            .replaceAll("Ä", "AE")
-            .replaceAll("Ö", "OE")
-            .replaceAll("Ü", "UE")
-            .replaceAll("ä", "ae")
-            .replaceAll("ö", "oe")
-            .replaceAll("ü", "ue")
-            .replaceAll("ß", "SS")
-            .replace(/[^A-Za-z0-9_]/g, "");
-    }
     const fileName = `${normalizeFilename(word).toLowerCase()}.mp3`;
     const localAudioPath = `./audio/${fileName}`;
 
@@ -528,7 +542,7 @@ function playWordCompleteSound() {
     setTimeout(() => playSound(1046.50, 300, 'sine'), 450);
 }
 
-async function levelUp() {
+async function levelUp(showSuccessMessage = true) {
     playLevelUpFanfare();
     level++;
     if (level > gameLevels.length - 1) level = gameLevels.length - 1;
@@ -537,9 +551,40 @@ async function levelUp() {
     progress = 0;
     progressElement.style.width = '0%';
     usedWords = [];
-    successMessage.style.display = 'block';
-    setTimeout(() => { successMessage.style.display = 'none'; }, 2000);
+
+    if (showSuccessMessage) {
+        // Pick a random success message
+        let msg = { text: "Super gemacht!", icon: "🎉" };
+        if (Array.isArray(successMessages) && successMessages.length > 0) {
+            msg = successMessages[Math.floor(Math.random() * successMessages.length)];
+        }
+        // Show message in display area and word-icons area
+        displayElement.textContent = msg.text;
+        wordIconsElement.innerHTML = `<span class="success-icon">${msg.icon}</span>`;
+
+        // Play audio for the message and wait for it to finish
+        await playSuccessAudio(msg.text);
+
+        // Wait an additional 0.5s before clearing and starting next level
+        await new Promise(resolve => setTimeout(resolve, 500));
+        displayElement.textContent = "";
+        wordIconsElement.textContent = "";
+    }
+
+    initKeyboard();
     await showLevelIntro(gameLevels[level]);
+}
+
+// Play audio for a success message (matches normalization in generate-audio.js)
+function playSuccessAudio(text) {
+    return new Promise((resolve) => {
+        const fileName = `${normalizeFilename(text).toLowerCase()}.mp3`;
+        const audioPath = `./audio/${fileName}`;
+        const audio = new Audio(audioPath);
+        audio.addEventListener('ended', () => resolve());
+        audio.addEventListener('error', () => resolve());
+        audio.play().catch(() => resolve());
+    });
 }
 
 async function levelDown() {
@@ -550,6 +595,7 @@ async function levelDown() {
     progress = 0;
     progressElement.style.width = '0%';
     usedWords = [];
+    initKeyboard();
     await showLevelIntro(gameLevels[level]);
 }
 
@@ -560,6 +606,7 @@ async function setLevel(newLevel) {
     progress = 0;
     progressElement.style.width = '0%';
     usedWords = [];
+    initKeyboard();
     await showLevelIntro(gameLevels[level]);
 }
 
@@ -709,7 +756,7 @@ async function initGame() {
 
     // Updated button event listeners to use async/await and not call generateNewWord directly
     prevLevelButton.addEventListener('click', async () => { if (gameStarted) { await levelDown(); } });
-    nextLevelButton.addEventListener('click', async () => { if (gameStarted) { await levelUp(); } });
+    nextLevelButton.addEventListener('click', async () => { if (gameStarted) { await levelUp(false); } });
     levelSelectElement.addEventListener('change', async (e) => { if (gameStarted) { await setLevel(parseInt(e.target.value)); } });
 
     // Click or keydown anywhere to start

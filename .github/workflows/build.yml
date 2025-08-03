@@ -42,4 +42,4 @@ jobs:
       - name: Build with Tauri Action
         uses: tauri-apps/tauri-action@v0
         with:
-          args: "-- --bundles deb,rpm"
+          args: "--bundles deb,rpm"

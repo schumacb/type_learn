@@ -1,18 +1,15 @@
 {
-  "name": "Häufige Buchstabenpaare",
-  "description": "Übe das Tippen von häufigen Buchstabenpaaren. Diese Kombinationen kommen oft in Wörtern vor.",
-  "enabledKeys": ["C", "H", "S", "T", "E", "I", "A", "U", "G", "N", "D", "R"],
+  "name": "Komplette untere Reihe",
+  "description": "Lerne alle Buchstaben der unteren Reihe mit beiden Händen zu tippen.",
+  "enabledKeys": ["Y", "X", "C", "V", "B", "N", "M"],
   "caseSensitive": false,
   "items": [
-    {"text": "ch", "icons": ["☀️", "🏠"]},
-    {"text": "st", "icons": ["☀️", "🐯"]},
-    {"text": "ei", "icons": ["🐘", "🦔"]},
-    {"text": "au", "icons": ["🍎", "🕐"]},
-    {"text": "ie", "icons": ["🦔", "🐘"]},
-    {"text": "er", "icons": ["🐘", "🚀"]},
-    {"text": "en", "icons": ["🐘", "👃"]},
-    {"text": "nd", "icons": ["👃", "👍"]},
-    {"text": "te", "icons": ["🐯", "🐘"]},
-    {"text": "ge", "icons": ["👻", "🐘"]}
+    {"text": "Y", "icons": ["🛥️"]},
+    {"text": "X", "icons": ["❌"]},
+    {"text": "C", "icons": ["💻"]},
+    {"text": "V", "icons": ["🐦"]},
+    {"text": "B", "icons": ["⚽"]},
+    {"text": "N", "icons": ["👃"]},
+    {"text": "M", "icons": ["🌙"]}
   ]
 }

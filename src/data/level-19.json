@@ -1,0 +1,18 @@
+{
+  "name": "Längere Texte",
+  "description": "Übe das Tippen von längeren Texten und komplexeren Sätzen.",
+  "enabledKeys": [],
+  "caseSensitive": false,
+  "items": [
+    {"text": "HEUTE GEHE ICH IN DIE SCHULE", "icons": ["📅", "🚶", "🏫"]},
+    {"text": "ICH HABE VIELE FREUNDE", "icons": ["😊", "🤝"]},
+    {"text": "MEIN LIEBLINGSSPIEL IST FANGEN", "icons": ["🎮", "🎲"]},
+    {"text": "WIR MACHEN EINEN AUSFLUG", "icons": ["🚗", "🏕️"]},
+    {"text": "ICH LESE GERN ABENTEUERBÜCHER", "icons": ["📖", "⚔️"]},
+    {"text": "MEINE FAMILIE IST SEHR LIEB", "icons": ["👫", "❤️"]},
+    {"text": "ICH LERNE JEDEN TAG ETWAS NEUES", "icons": ["📚", "🆕"]},
+    {"text": "WIR BACKEN ZUSAMMEN KUCHEN", "icons": ["👩‍🍳", "🍰"]},
+    {"text": "DER GARTEN IST SEHR SCHÖN", "icons": ["🌳", "🌺"]},
+    {"text": "ICH HOFFE ES REGNET NICHT", "icons": ["🌧️", "☔"]}
+  ]
+}

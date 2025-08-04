@@ -1,20 +1,18 @@
 {
-  "name": "Alltagswörter und Phrasen",
-  "description": "Übe das Tippen von häufigen Alltagswörtern und einfachen Phrasen.",
-  "enabledKeys": [
-    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "V", "W"
-  ],
+  "name": "Einfache Silben",
+  "description": "Übe das Tippen von einfachen Silben.",
+  "enabledKeys": ["L", "A", "E", "I", "O", "U", "M"],
   "caseSensitive": false,
   "items": [
-    {"text": "FREUNDE", "icons": ["🤝"]}, {"text": "FAMILIE", "icons": ["👫"]},
-    {"text": "SCHULE", "icons": ["🏫"]}, {"text": "LESEN", "icons": ["📖"]},
-    {"text": "SCHREIBEN", "icons": ["✏️"]}, {"text": "RECHNEN", "icons": ["🔢"]},
-    {"text": "MALEN", "icons": ["🎨"]}, {"text": "SPIELEN", "icons": ["🧸"]},
-    {"text": "TURNEN", "icons": ["🤸"]}, {"text": "SCHWIMMEN", "icons": ["🏊"]},
-    {"text": "SCHLAFEN", "icons": ["😴"]}, {"text": "ESSEN", "icons": ["🍽️"]},
-    {"text": "TRINKEN", "icons": ["🥤"]}, {"text": "SAUBER", "icons": ["🧼"]},
-    {"text": "GUTEN MORGEN", "icons": ["👋", "☀️"]}, {"text": "DANKE", "icons": ["🙏"]},
-    {"text": "BITTE", "icons": ["🤲"]}, {"text": "JA", "icons": ["👍"]},
-    {"text": "NEIN", "icons": ["👎"]}
+    {"text": "la", "icons": ["🦁", "🍎"]},
+    {"text": "le", "icons": ["🦁", "🐘"]},
+    {"text": "li", "icons": ["🦁", "🦔"]},
+    {"text": "lo", "icons": ["🦁", "🍊"]},
+    {"text": "lu", "icons": ["🦁", "🕐"]},
+    {"text": "ma", "icons": ["🌙", "🍎"]},
+    {"text": "me", "icons": ["🌙", "🐘"]},
+    {"text": "mi", "icons": ["🌙", "🦔"]},
+    {"text": "mo", "icons": ["🌙", "🍊"]},
+    {"text": "mu", "icons": ["🌙", "🕐"]}
   ]
 }

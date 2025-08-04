@@ -1,18 +1,24 @@
 {
-  "name": "Einfache Silben",
-  "description": "Übe das Tippen von einfachen Silben.",
-  "enabledKeys": ["L", "A", "E", "I", "O", "U", "M"],
+  "name": "Mittlere und untere Reihe",
+  "description": "Lerne alle Buchstaben der mittleren und unteren Reihe mit beiden Händen zu tippen.",
+  "enabledKeys": ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Y", "X", "C", "V", "B", "N", "M"],
   "caseSensitive": false,
   "items": [
-    {"text": "la", "icons": ["🦁", "🍎"]},
-    {"text": "le", "icons": ["🦁", "🐘"]},
-    {"text": "li", "icons": ["🦁", "🦔"]},
-    {"text": "lo", "icons": ["🦁", "🍊"]},
-    {"text": "lu", "icons": ["🦁", "🕐"]},
-    {"text": "ma", "icons": ["🌙", "🍎"]},
-    {"text": "me", "icons": ["🌙", "🐘"]},
-    {"text": "mi", "icons": ["🌙", "🦔"]},
-    {"text": "mo", "icons": ["🌙", "🍊"]},
-    {"text": "mu", "icons": ["🌙", "🕐"]}
+    {"text": "A", "icons": ["🍎"]},
+    {"text": "S", "icons": ["☀️"]},
+    {"text": "D", "icons": ["👍"]},
+    {"text": "F", "icons": ["🐟"]},
+    {"text": "G", "icons": ["👻"]},
+    {"text": "H", "icons": ["🏠"]},
+    {"text": "J", "icons": ["🧥"]},
+    {"text": "K", "icons": ["👑"]},
+    {"text": "L", "icons": ["🦁"]},
+    {"text": "Y", "icons": ["🛥️"]},
+    {"text": "X", "icons": ["❌"]},
+    {"text": "C", "icons": ["💻"]},
+    {"text": "V", "icons": ["🐦"]},
+    {"text": "B", "icons": ["⚽"]},
+    {"text": "N", "icons": ["👃"]},
+    {"text": "M", "icons": ["🌙"]}
   ]
 }

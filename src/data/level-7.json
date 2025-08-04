@@ -1,10 +1,13 @@
 {
-  "name": "Rechte Hand untere Reihe",
-  "description": "Lerne die Buchstaben der rechten Hand auf der unteren Reihe zu tippen.",
-  "enabledKeys": ["N", "M"],
+  "name": "Linke Hand untere Reihe",
+  "description": "Lerne die Buchstaben der linken Hand auf der unteren Reihe zu tippen.",
+  "enabledKeys": ["Y", "X", "C", "V", "B"],
   "caseSensitive": false,
   "items": [
-    {"text": "N", "icons": ["👃"]},
-    {"text": "M", "icons": ["🌙"]}
+    {"text": "Y", "icons": ["🛥️"]},
+    {"text": "X", "icons": ["❌"]},
+    {"text": "C", "icons": ["💻"]},
+    {"text": "V", "icons": ["🐦"]},
+    {"text": "B", "icons": ["⚽"]}
   ]
 }

@@ -1,15 +1,14 @@
 {
-  "name": "Einfache Sätze",
-  "description": "Übe das Tippen von einfachen Sätzen.",
-  "enabledKeys": [],
+  "name": "Häufige Buchstabenkombinationen",
+  "description": "Übe das Tippen von häufigen Buchstabenkombinationen. Diese kommen oft in Wörtern vor.",
+  "enabledKeys": ["S", "C", "H", "T", "R", "E", "I", "A", "U", "N", "D", "G"],
   "caseSensitive": false,
   "items": [
-    {"text": "ICH BIN DREI", "icons": ["👶", "3️⃣"]}, {"text": "MEIN NAME IST", "icons": ["📛", "✍️"]},
-    {"text": "ICH HABE HUNGER", "icons": ["😋", "🍔"]}, {"text": "ICH HABE DURST", "icons": ["😋", "🥤"]},
-    {"text": "ICH BIN MÜDE", "icons": ["😴"]}, {"text": "ICH BIN FROH", "icons": ["😊"]},
-    {"text": "ICH BIN TRAURIG", "icons": ["😢"]}, {"text": "ICH BIN KLEIN", "icons": ["👶"]},
-    {"text": "ICH BIN GROß", "icons": ["💪"]}, {"text": "ICH LIEBE DICH", "icons": ["❤️", "😊"]},
-    {"text": "GUTE NACHT", "icons": ["🌙", "😴"]}, {"text": "ALLES GUTE", "icons": ["🎉"]},
-    {"text": "VIEL GLÜCK", "icons": ["🍀"]}, {"text": "SCHÖNEN TAG", "icons": ["😊", "☀️"]}
+    {"text": "sch", "icons": ["☀️", "💻", "🏠"]},
+    {"text": "str", "icons": ["☀️", "🐯", "🚀"]},
+    {"text": "eis", "icons": ["🐘", "🦔", "☀️"]},
+    {"text": "aus", "icons": ["🍎", "🕐", "☀️"]},
+    {"text": "und", "icons": ["🕐", "👃", "👍"]},
+    {"text": "der", "icons": ["👍", "🐘", "🚀"]}
   ]
 }

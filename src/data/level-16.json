@@ -1,18 +1,20 @@
 {
-  "name": "Längere Texte",
-  "description": "Übe das Tippen von längeren Texten und komplexeren Sätzen.",
-  "enabledKeys": [],
+  "name": "Alltagswörter und Phrasen",
+  "description": "Übe das Tippen von häufigen Alltagswörtern und einfachen Phrasen.",
+  "enabledKeys": [
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "V", "W"
+  ],
   "caseSensitive": false,
   "items": [
-    {"text": "HEUTE GEHE ICH IN DIE SCHULE", "icons": ["📅", "🚶", "🏫"]},
-    {"text": "ICH HABE VIELE FREUNDE", "icons": ["😊", "🤝"]},
-    {"text": "MEIN LIEBLINGSSPIEL IST FANGEN", "icons": ["🎮", "🎲"]},
-    {"text": "WIR MACHEN EINEN AUSFLUG", "icons": ["🚗", "🏕️"]},
-    {"text": "ICH LESE GERN ABENTEUERBÜCHER", "icons": ["📖", "⚔️"]},
-    {"text": "MEINE FAMILIE IST SEHR LIEB", "icons": ["👫", "❤️"]},
-    {"text": "ICH LERNE JEDEN TAG ETWAS NEUES", "icons": ["📚", "🆕"]},
-    {"text": "WIR BACKEN ZUSAMMEN KUCHEN", "icons": ["👩‍🍳", "🍰"]},
-    {"text": "DER GARTEN IST SEHR SCHÖN", "icons": ["🌳", "🌺"]},
-    {"text": "ICH HOFFE ES REGNET NICHT", "icons": ["🌧️", "☔"]}
+    {"text": "FREUNDE", "icons": ["🤝"]}, {"text": "FAMILIE", "icons": ["👫"]},
+    {"text": "SCHULE", "icons": ["🏫"]}, {"text": "LESEN", "icons": ["📖"]},
+    {"text": "SCHREIBEN", "icons": ["✏️"]}, {"text": "RECHNEN", "icons": ["🔢"]},
+    {"text": "MALEN", "icons": ["🎨"]}, {"text": "SPIELEN", "icons": ["🧸"]},
+    {"text": "TURNEN", "icons": ["🤸"]}, {"text": "SCHWIMMEN", "icons": ["🏊"]},
+    {"text": "SCHLAFEN", "icons": ["😴"]}, {"text": "ESSEN", "icons": ["🍽️"]},
+    {"text": "TRINKEN", "icons": ["🥤"]}, {"text": "SAUBER", "icons": ["🧼"]},
+    {"text": "GUTEN MORGEN", "icons": ["👋", "☀️"]}, {"text": "DANKE", "icons": ["🙏"]},
+    {"text": "BITTE", "icons": ["🤲"]}, {"text": "JA", "icons": ["👍"]},
+    {"text": "NEIN", "icons": ["👎"]}
   ]
 }

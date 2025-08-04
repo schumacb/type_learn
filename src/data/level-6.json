@@ -1,13 +1,18 @@
 {
-  "name": "Linke Hand untere Reihe",
-  "description": "Lerne die Buchstaben der linken Hand auf der unteren Reihe zu tippen.",
-  "enabledKeys": ["Y", "X", "C", "V", "B"],
+  "name": "Komplette obere Reihe",
+  "description": "Lerne alle Buchstaben der oberen Reihe mit beiden Händen zu tippen.",
+  "enabledKeys": ["Q", "W", "E", "R", "T", "Z", "U", "I", "O", "P"],
   "caseSensitive": false,
   "items": [
-    {"text": "Y", "icons": ["🛥️"]},
-    {"text": "X", "icons": ["❌"]},
-    {"text": "C", "icons": ["💻"]},
-    {"text": "V", "icons": ["🐦"]},
-    {"text": "B", "icons": ["⚽"]}
+    {"text": "Q", "icons": ["🪼"]},
+    {"text": "W", "icons": ["🐺"]},
+    {"text": "E", "icons": ["🐘"]},
+    {"text": "R", "icons": ["🚀"]},
+    {"text": "T", "icons": ["🐯"]},
+    {"text": "Z", "icons": ["🦓"]},
+    {"text": "U", "icons": ["🕐"]},
+    {"text": "I", "icons": ["🦔"]},
+    {"text": "O", "icons": ["🍊"]},
+    {"text": "P", "icons": ["🍄"]}
   ]
 }

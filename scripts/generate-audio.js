@@ -64,7 +64,7 @@ async function main() {
 
     // Parse CLI arguments for special modes
     const args = process.argv.slice(2);
-    const listMode = args.includes('--list-missing-unused') || args.includes('--list-audio-status');
+    const listMode = args.includes('--list-missing-unused') || args.includes('--list-audio-status') || args.includes('-l');
 
     if (TTS_PROVIDER === 'elevenlabs' && !XI_API_KEY) {
         console.error("FATAL: XI_API_KEY is not defined for ElevenLabs. Please add it to your .env file.");

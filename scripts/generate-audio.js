@@ -13,7 +13,6 @@ import fs from 'fs';
 let elevenlabs = null;
 let openai = null;
 
-
 /**
  * TTS Provider selection precedence:
  * 1. Use process.env.TTS_PROVIDER if set (from .env).
@@ -119,26 +118,27 @@ async function main() {
         }
         return { allWords, expectedFiles };
     }
+
+    // Shared: get missing and unused audio files
+    function getAudioFileStatus(expectedFiles, audioDir) {
+        const actualFiles = new Set(fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3')));
+        const missing = [];
+        for (const fname of expectedFiles) {
+            if (!actualFiles.has(fname)) missing.push(fname);
+        }
+        const unused = [];
+        for (const fname of actualFiles) {
+            if (!expectedFiles.has(fname)) unused.push(fname);
+        }
+        return { missing, unused, actualFiles };
+    }
+
     const { allWords, expectedFiles } = collectAllWordsAndAudioFilenames();
     // ------------------------------------------------
 
     // --- LIST MISSING/UNUSED AUDIO FILES MODE ---
     if (listMode) {
-        // Build set of expected audio filenames
-        /* removed: expectedFiles logic is now in collectAllWordsAndAudioFilenames */
-        // List actual audio files
-        const actualFiles = new Set(fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3')));
-
-        // Missing: in expectedFiles but not in actualFiles
-        const missing = [];
-        for (const fname of expectedFiles) {
-            if (!actualFiles.has(fname)) missing.push(fname);
-        }
-        // Unused: in actualFiles but not in expectedFiles
-        const unused = [];
-        for (const fname of actualFiles) {
-            if (!expectedFiles.has(fname)) unused.push(fname);
-        }
+        const { missing, unused } = getAudioFileStatus(expectedFiles, audioDir);
 
         console.log("=== Audio File Status ===");
         console.log(`Missing audio files (${missing.length}):`);
@@ -274,15 +274,17 @@ async function main() {
 
     async function processAllWords() {
         console.log(`Found ${allWords.size} unique words to process.`);
-        // Gather missing words only
-        const missingWords = [];
+        // Use shared missing/unused logic
+        const { missing, unused, actualFiles } = getAudioFileStatus(expectedFiles, audioDir);
+
+        // Map missing filenames back to words
+        // (since filenames are normalized, we need to match them to the original words)
+        const normalizedToWord = {};
         for (const word of allWords) {
-            const fileName = `${normalizeFilename(word)}.mp3`;
-            const filePath = path.join(audioDir, fileName);
-            if (!fs.existsSync(filePath)) {
-                missingWords.push(word);
-            }
+            normalizedToWord[`${normalizeFilename(word).toLowerCase()}.mp3`] = word;
         }
+        const missingWords = missing.map(fname => normalizedToWord[fname]).filter(Boolean);
+
         console.log(`Need to generate ${missingWords.length} audio files (missing).`);
 
         if (missingWords.length === 0) {

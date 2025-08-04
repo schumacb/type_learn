@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprite Animation Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background-color: #f3f4f6; }
+        button:disabled, label[disabled] { cursor: not-allowed; opacity: 0.6; }
+        /* Style for the drag-over effect */
+        .drag-over {
+            border-color: #3b82f6 !important; /* Tailwind's blue-500 */
+            background-color: #eff6ff; /* Tailwind's blue-50 */
+        }
+    </style>
+</head>
+<body>
+    <!-- Persistent file inputs are kept outside the dynamic root to preserve their state -->
+    <input type="file" accept="image/*" class="hidden" id="image-upload-input">
+    <input type="file" accept=".json" class="hidden" id="settings-upload-input">
+    <div id="root"></div>
+
+    <script>
+        const root = document.getElementById('root');
+        const imageUploadInput = document.getElementById('image-upload-input');
+        const settingsUploadInput = document.getElementById('settings-upload-input');
+
+        // --- STATE & CORE LOGIC ---
+        let image = null;
+        let isPlaying = false;
+        let currentFrame = 0;
+        let settings = {
+            borderTop: 0, borderRight: 0, borderBottom: 0, borderLeft: 0,
+            horizontalFrames: 4, verticalFrames: 4, animationSpeed: 100,
+        };
+        let animationInterval = null;
+
+        const getFrameDimensions = () => {
+            if (!image) return { width: 0, height: 0 };
+            const hFrames = settings.horizontalFrames || 1;
+            const vFrames = settings.verticalFrames || 1;
+            const availableWidth = image.width - (settings.borderLeft || 0) - (settings.borderRight || 0);
+            const availableHeight = image.height - (settings.borderTop || 0) - (settings.borderBottom || 0);
+            return {
+                width: Math.max(0, Math.floor(availableWidth / hFrames)),
+                height: Math.max(0, Math.floor(availableHeight / vFrames))
+            };
+        };
+
+        const processImageFile = (file) => {
+            if (!file || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    image = img;
+                    currentFrame = 0;
+                    isPlaying = false;
+                    manageAnimation();
+                    updateUI(); // Update UI without full re-render
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        const manageAnimation = () => {
+            clearInterval(animationInterval);
+            if (isPlaying && image) {
+                animationInterval = setInterval(() => {
+                    const totalFrames = (settings.horizontalFrames || 1) * (settings.verticalFrames || 1);
+                    if (totalFrames > 0) {
+                        currentFrame = (currentFrame + 1) % totalFrames;
+                    }
+                    updateUI();
+                }, settings.animationSpeed);
+            }
+        };
+
+        // --- DOM MANIPULATION ---
+
+        /**
+         * Renders the initial HTML structure ONCE.
+         * This avoids destroying input fields and losing focus.
+         */
+        function renderInitialStructure() {
+            root.innerHTML = `
+            <div class="min-h-screen p-4 sm:p-6">
+                <div class="max-w-7xl mx-auto">
+                    <header class="text-center mb-8"><h1 class="text-3xl sm:text-4xl font-bold text-gray-800">Sprite Animation Viewer</h1></header>
+                    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white rounded-lg shadow-lg p-6 space-y-6" id="controls-panel">
+                            <div>
+                                <h2 class="text-xl font-semibold mb-2 text-gray-700">Controls</h2>
+                                <label for="image-upload-input" id="image-drop-zone" class="flex items-center justify-center w-full p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                                    <i data-lucide="upload" class="w-5 h-5 mr-2"></i><span>Choose Image or Drop Here</span>
+                                </label>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium mb-3 text-gray-700">Border Settings</h3>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div><label class="block text-sm text-gray-600 mb-1">Top</label><input type="number" min="0" value="${settings.borderTop}" data-key="borderTop" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"></div>
+                                    <div><label class="block text-sm text-gray-600 mb-1">Right</label><input type="number" min="0" value="${settings.borderRight}" data-key="borderRight" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"></div>
+                                    <div><label class="block text-sm text-gray-600 mb-1">Bottom</label><input type="number" min="0" value="${settings.borderBottom}" data-key="borderBottom" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"></div>
+                                    <div><label class="block text-sm text-gray-600 mb-1">Left</label><input type="number" min="0" value="${settings.borderLeft}" data-key="borderLeft" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium mb-3 text-gray-700">Frame Configuration</h3>
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <div><label class="block text-sm text-gray-600 mb-1">Horiz. Frames</label><input type="number" min="1" value="${settings.horizontalFrames}" data-key="horizontalFrames" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"></div>
+                                    <div><label class="block text-sm text-gray-600 mb-1">Vert. Frames</label><input type="number" min="1" value="${settings.verticalFrames}" data-key="verticalFrames" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"></div>
+                                </div>
+                                <div><label class="block text-sm text-gray-600 mb-1">Speed (ms/frame)</label><input type="number" min="10" value="${settings.animationSpeed}" data-key="animationSpeed" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"></div>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium mb-3 text-gray-700">Animation Controls</h3>
+                                <div class="flex gap-2 mb-3">
+                                    <button id="toggleAnimation" class="flex-1 flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"><i id="play-pause-icon" data-lucide="play" class="w-4 h-4 mr-2"></i><span id="play-pause-text">Play</span></button>
+                                    <button id="resetAnimation" class="flex-1 flex items-center justify-center px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"><i data-lucide="rotate-ccw" class="w-4 h-4 mr-2"></i>Reset</button>
+                                </div>
+                                <label id="frame-counter-label" class="block text-sm text-gray-600 mb-1">Frame: 1 / 16</label>
+                                <input id="frame-range" type="range" min="0" max="15" value="0" data-key="frameRange" class="w-full">
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium mb-3 text-gray-700">Settings Management</h3>
+                                <div class="flex gap-2">
+                                    <button id="saveSettings" class="flex-1 flex items-center justify-center px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"><i data-lucide="download" class="w-4 h-4 mr-1"></i>Save JSON</button>
+                                    <label for="settings-upload-input" class="flex-1 flex items-center justify-center px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 cursor-pointer text-sm"><i data-lucide="upload" class="w-4 h-4 mr-1"></i>Load JSON</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="bg-white rounded-lg shadow-lg p-6">
+                                <h2 class="text-xl font-semibold mb-4 text-gray-700">Animation Preview</h2>
+                                <div id="preview-container" class="flex justify-center items-center bg-gray-50 rounded-lg p-4 min-h-[16rem]"></div>
+                            </div>
+                            <div class="bg-white rounded-lg shadow-lg p-6">
+                                <h2 class="text-xl font-semibold mb-4 text-gray-700">Sprite Sheet</h2>
+                                <div id="spritesheet-container" class="overflow-auto max-h-96 bg-gray-50 rounded-lg p-2"></div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>`;
+            lucide.createIcons();
+        }
+
+        /**
+         * Updates only the necessary parts of the DOM.
+         * This is efficient and preserves focus on input fields.
+         */
+        function updateUI() {
+            const totalFrames = (settings.horizontalFrames || 1) * (settings.verticalFrames || 1);
+            if (currentFrame >= totalFrames) currentFrame = Math.max(0, totalFrames - 1);
+
+            const frameDims = getFrameDimensions();
+
+            // Update Animation Controls
+            const isDisabled = !image;
+            document.getElementById('toggleAnimation').disabled = isDisabled;
+            document.getElementById('resetAnimation').disabled = isDisabled;
+            document.getElementById('frame-range').disabled = isDisabled;
+
+            const playPauseIcon = document.getElementById('play-pause-icon');
+            playPauseIcon.setAttribute('data-lucide', isPlaying ? 'pause' : 'play');
+            document.getElementById('play-pause-text').textContent = isPlaying ? 'Pause' : 'Play';
+
+            document.getElementById('frame-counter-label').textContent = `Frame: ${currentFrame + 1} / ${totalFrames}`;
+            const frameRange = document.getElementById('frame-range');
+            frameRange.max = totalFrames > 0 ? totalFrames - 1 : 0;
+            frameRange.value = currentFrame;
+
+            // Update Preview Panel
+            const previewContainer = document.getElementById('preview-container');
+            if (image) {
+                previewContainer.innerHTML = `<div class="text-center">
+                    <canvas id="previewCanvas" class="border-2 border-gray-300 rounded mb-2 max-w-full" style="image-rendering: pixelated;"></canvas>
+                    <p class="text-sm text-gray-600">Frame ${currentFrame + 1} of ${totalFrames}</p>
+                    <p class="text-xs text-gray-500">Dims: ${frameDims.width}x${frameDims.height}px</p>
+                </div>`;
+            } else {
+                previewContainer.innerHTML = `<p class="text-gray-500">Upload an image to see the preview</p>`;
+            }
+
+            // Update Sprite Sheet Panel
+            const spritesheetContainer = document.getElementById('spritesheet-container');
+            if (image) {
+                spritesheetContainer.innerHTML = `<canvas id="spriteCanvas" style="image-rendering: pixelated;"></canvas>`;
+            } else {
+                spritesheetContainer.innerHTML = `<div class="flex justify-center items-center h-32"><p class="text-gray-500">No image loaded</p></div>`;
+            }
+
+            lucide.createIcons(); // Re-render icons that changed (play/pause)
+            drawCanvases();
+        }
+
+        function drawCanvases() {
+            if (!image) return;
+            const spriteCanvas = document.getElementById('spriteCanvas');
+            const previewCanvas = document.getElementById('previewCanvas');
+            const frameDims = getFrameDimensions();
+            if (!spriteCanvas || !previewCanvas || frameDims.width <= 0 || frameDims.height <= 0) return;
+
+            // Draw Sprite Sheet
+            const spriteCtx = spriteCanvas.getContext('2d');
+            spriteCanvas.width = image.width;
+            spriteCanvas.height = image.height;
+            spriteCtx.drawImage(image, 0, 0);
+            spriteCtx.strokeStyle = 'rgba(255, 0, 0, 0.7)';
+            spriteCtx.lineWidth = 1;
+            for (let row = 0; row < settings.verticalFrames; row++) {
+                for (let col = 0; col < settings.horizontalFrames; col++) {
+                    spriteCtx.strokeRect(settings.borderLeft + col * frameDims.width, settings.borderTop + row * frameDims.height, frameDims.width, frameDims.height);
+                }
+            }
+            const currentRow = Math.floor(currentFrame / settings.horizontalFrames);
+            const currentCol = currentFrame % settings.horizontalFrames;
+            spriteCtx.strokeStyle = '#00ff00';
+            spriteCtx.lineWidth = 2;
+            spriteCtx.strokeRect(settings.borderLeft + currentCol * frameDims.width, settings.borderTop + currentRow * frameDims.height, frameDims.width, frameDims.height);
+
+            // Draw Preview
+            const previewCtx = previewCanvas.getContext('2d');
+            previewCanvas.width = frameDims.width;
+            previewCanvas.height = frameDims.height;
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            previewCtx.drawImage(image, settings.borderLeft + currentCol * frameDims.width, settings.borderTop + currentRow * frameDims.height, frameDims.width, frameDims.height, 0, 0, frameDims.width, frameDims.height);
+        }
+
+        // --- EVENT HANDLERS ---
+        async function handleSaveSettings() {
+            const settingsBlob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({ suggestedName: 'sprite-settings.json', types: [{ description: 'JSON Files', accept: { 'application/json': ['.json'] } }] });
+                    const writable = await handle.createWritable();
+                    await writable.write(settingsBlob);
+                    await writable.close();
+                } catch (err) { if (err.name !== 'AbortError') console.error(err); }
+            } else {
+                const url = URL.createObjectURL(settingsBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'sprite-settings.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // --- GLOBAL EVENT LISTENERS (using delegation) ---
+        function setupEventListeners() {
+            // Clicks on buttons
+            root.addEventListener('click', (e) => {
+                const button = e.target.closest('button');
+                if (!button || button.disabled) return;
+                switch (button.id) {
+                    case 'toggleAnimation': isPlaying = !isPlaying; manageAnimation(); break;
+                    case 'resetAnimation': currentFrame = 0; isPlaying = false; manageAnimation(); break;
+                    case 'saveSettings': handleSaveSettings(); return; // No UI update needed
+                }
+                updateUI();
+            });
+
+            // Input changes for settings
+            root.addEventListener('input', (e) => {
+                const key = e.target.dataset.key;
+                if (!key) return;
+                const value = parseInt(e.target.value);
+                if (key === 'frameRange') {
+                    currentFrame = value;
+                } else {
+                    settings[key] = isNaN(value) ? settings[key] : value;
+                    if (key === 'animationSpeed') manageAnimation();
+                }
+                updateUI();
+            });
+
+            // File input listeners (attached to persistent inputs)
+            imageUploadInput.addEventListener('change', (e) => processImageFile(e.target.files[0]));
+            settingsUploadInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const loadedSettings = JSON.parse(e.target.result);
+                        if (typeof loadedSettings === 'object' && loadedSettings.horizontalFrames) {
+                            // Update input fields with loaded values
+                            const controls = document.getElementById('controls-panel');
+                            Object.keys(loadedSettings).forEach(key => {
+                                const input = controls.querySelector(`[data-key="${key}"]`);
+                                if (input) input.value = loadedSettings[key];
+                            });
+                            settings = { ...settings, ...loadedSettings };
+                            if (isPlaying) manageAnimation();
+                            updateUI();
+                        } else alert('Invalid settings file.');
+                    } catch (err) { alert('Could not parse JSON file.'); }
+                };
+                reader.readAsText(file);
+                e.target.value = null;
+            });
+
+            // Drag and Drop Listeners
+            const dropZone = document.getElementById('image-drop-zone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            }));
+            ['dragenter', 'dragover'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over')));
+            ['dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over')));
+            dropZone.addEventListener('drop', (e) => processImageFile(e.dataTransfer.files[0]));
+        }
+
+        // --- INITIALIZATION ---
+        renderInitialStructure();
+        updateUI();
+        setupEventListeners();
+
+    </script>
+</body>
+</html>

@@ -143,6 +143,34 @@ body {
     flex-wrap: wrap;
     min-height: 40px;
 }
+.tiger-talk-animation {
+    width: 308px;
+    height: 320px;
+    margin: 0 auto;
+    background-image: url('./avatars/tiger/talk-animation.png');
+    /* Sprite sheet is 3x3 grid, 9 frames, each 308x320px, borders: top 32px, right 60px, bottom 32px, left 40px */
+    background-size: 1024px 1024px; /* Use full image size for correct background-position math */
+    background-position: -40px -32px;
+    /* Animation */
+    animation: tiger-talk-anim 900ms steps(1, end) infinite;
+    /* Hide selection highlight, etc. */
+    user-select: none;
+    pointer-events: none;
+    display: block;
+}
+
+@keyframes tiger-talk-anim {
+    0%   { background-position: -40px -32px; }
+    11.111% { background-position: -348px -32px; }
+    22.222% { background-position: -656px -32px; }
+    33.333% { background-position: -40px -352px; }
+    44.444% { background-position: -348px -352px; }
+    55.555% { background-position: -656px -352px; }
+    66.666% { background-position: -40px -672px; }
+    77.777% { background-position: -348px -672px; }
+    88.888% { background-position: -656px -672px; }
+    100% { background-position: -40px -32px; }
+}
 
 .icon {
     font-size: 2.6rem;

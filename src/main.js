@@ -141,6 +141,13 @@ let isLevelIntroPlaying = false;
 // Show level intro: name, pause, description, pause, then start level
 async function showLevelIntro(levelObj) {
     isLevelIntroPlaying = true;
+
+    // Show tiger talking animation in .word-icons during intro
+    if (wordIconsElement) {
+        wordIconsElement.innerHTML = '<div class="tiger-talk-animation"></div>';
+    }
+    const tigerDiv = wordIconsElement ? wordIconsElement.querySelector('.tiger-talk-animation') : null;
+
     // Cancel any ongoing speech/audio
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     // Try to stop any playing HTML5 audio (best effort)
@@ -148,24 +155,52 @@ async function showLevelIntro(levelObj) {
 
     if (!levelObj) {
         isLevelIntroPlaying = false;
+        if (wordIconsElement) wordIconsElement.innerHTML = '';
         generateNewWord();
         return;
     }
+
+    // Helper to pause animation and show frame 1
+    function showTigerIdle() {
+        if (tigerDiv) {
+            tigerDiv.classList.remove('tiger-talk-animation');
+            tigerDiv.style.backgroundImage = "url('./avatars/tiger/talk-animation.png')";
+            tigerDiv.style.width = "308px";
+            tigerDiv.style.height = "320px";
+            tigerDiv.style.backgroundSize = "1024px 1024px";
+            tigerDiv.style.backgroundPosition = "-40px -32px";
+        }
+    }
+    // Helper to start animation
+    function showTigerTalking() {
+        if (tigerDiv) {
+            tigerDiv.classList.add('tiger-talk-animation');
+            tigerDiv.style.backgroundImage = "";
+            tigerDiv.style.backgroundPosition = "";
+            tigerDiv.style.backgroundSize = "";
+        }
+    }
+
     // Show level name
     displayElement.textContent = levelObj.name || "Level";
+    showTigerTalking();
     await speakWordAndWait(levelObj.name || "Level", true);
+    showTigerIdle();
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Show description
     if (levelObj.description) {
         displayElement.textContent = levelObj.description;
+        showTigerTalking();
         await speakWordAndWait(levelObj.description, true);
+        showTigerIdle();
         await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     // Hide intro and start level
     displayElement.textContent = "";
     isLevelIntroPlaying = false;
+    if (wordIconsElement) wordIconsElement.innerHTML = '';
     generateNewWord();
 }
 

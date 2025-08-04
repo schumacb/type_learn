@@ -57,14 +57,58 @@ const XI_API_KEY = process.env.XI_API_KEY;
 
 // We wrap the entire script in an async function to use dynamic import() for node-fetch.
 async function main() {
-    // Dynamically import node-fetch v3, which is an ES-only module.
-    const { default: fetch } = await import('node-fetch');
+    // Define these early so they're available everywhere
     const audioDir = path.join(__dirname, '../src/audio');
     const dataDir = path.join(__dirname, '../src/data');
 
     // Parse CLI arguments for special modes
     const args = process.argv.slice(2);
     const listMode = args.includes('--list-missing-unused') || args.includes('--list-audio-status') || args.includes('-l');
+
+    // Support: pass a text to generate as a positional argument (not starting with '-')
+    const nonFlagArgs = args.filter(arg => !arg.startsWith('-'));
+    const textArg = nonFlagArgs[0];
+    const customFileArg = nonFlagArgs[1];
+
+    // Parse force flag
+    const force = args.includes('--force') || args.includes('-f');
+
+    // --- SINGLE TEXT GENERATION MODE ---
+    if (textArg && !listMode) {
+        // Dynamically import node-fetch v3, which is an ES-only module.
+        const { default: fetch } = await import('node-fetch');
+        // Ensure audioDir exists
+        if (!fs.existsSync(audioDir)) {
+            fs.mkdirSync(audioDir);
+        }
+        // Determine target file name
+        const fileName = customFileArg
+            ? `${normalizeFilename(customFileArg).toLowerCase()}.mp3`
+            : `${normalizeFilename(textArg).toLowerCase()}.mp3`;
+        const filePath = path.join(audioDir, fileName);
+
+        // If file exists and not force, prompt for confirmation
+        if (fs.existsSync(filePath) && !force) {
+            const readline = await import('readline');
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout
+            });
+            const question = (q) => new Promise(res => rl.question(q, res));
+            const answer = await question(`File "${fileName}" already exists. Overwrite? [y/N]: `);
+            rl.close();
+            if (!/^y(es)?$/i.test(answer.trim())) {
+                console.log(`Skipping "${textArg}", file already exists as ${fileName}.`);
+                process.exit(0);
+            }
+            console.log(`Overwriting existing file: ${fileName}`);
+        }
+        await generateAudioForWord(textArg, customFileArg, true); // force overwrite if we got here
+        process.exit(0);
+    }
+
+    // Dynamically import node-fetch v3, which is an ES-only module.
+    const { default: fetch } = await import('node-fetch');
 
     if (TTS_PROVIDER === 'elevenlabs' && !XI_API_KEY) {
         console.error("FATAL: XI_API_KEY is not defined for ElevenLabs. Please add it to your .env file.");
@@ -190,13 +234,17 @@ async function main() {
             .replace(/[^A-Za-z0-9_]/g, ""); // Remove any other non-ASCII chars
     }
 
-    async function generateAudioForWord(word) {
-        const fileName = `${normalizeFilename(word).toLowerCase()}.mp3`;
+    async function generateAudioForWord(word, customFileName, force = false) {
+        const fileName = customFileName
+            ? `${normalizeFilename(customFileName).toLowerCase()}.mp3`
+            : `${normalizeFilename(word).toLowerCase()}.mp3`;
         const filePath = path.join(audioDir, fileName);
 
-        if (fs.existsSync(filePath)) {
-            console.log(`Skipping "${word}", file already exists.`);
+        if (fs.existsSync(filePath) && !force) {
+            console.log(`Skipping "${word}", file already exists as ${fileName}. Use --force to overwrite.`);
             return;
+        } else if (fs.existsSync(filePath) && force) {
+            console.log(`Overwriting existing file: ${fileName}`);
         }
 
         // Dynamically import TTS providers if not already loaded

@@ -129,6 +129,16 @@ async function main() {
                 const fileContent = fs.readFileSync(filePath, 'utf-8');
                 const levelData = JSON.parse(fileContent);
 
+                // Special handling for intro.json
+                if (file === 'intro.json' && levelData && Array.isArray(levelData.intro)) {
+                    levelData.intro.forEach(entry => {
+                        if (entry && typeof entry.text === 'string') {
+                            allWords.add(entry.text);
+                        }
+                    });
+                    continue;
+                }
+
                 // Special handling for success-messages.json
                 if (file === 'success-messages.json' && Array.isArray(levelData)) {
                     levelData.forEach(msg => {

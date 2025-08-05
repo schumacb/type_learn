@@ -137,20 +137,70 @@ async function loadGameData() {
 
 // Global flag to block actions during intro
 let isLevelIntroPlaying = false;
+let isAppIntroPlaying = false;
+
+// --- Shared Tiger Animation Helpers ---
+function getTigerDiv() {
+    if (wordIconsElement) {
+        let tigerDiv = wordIconsElement.querySelector('.tiger-talk-animation');
+        if (!tigerDiv) {
+            wordIconsElement.innerHTML = '<div class="tiger-talk-animation"></div>';
+            tigerDiv = wordIconsElement.querySelector('.tiger-talk-animation');
+        }
+        return tigerDiv;
+    }
+    return null;
+}
+
+function showTigerIdle(tigerDiv) {
+    if (tigerDiv) {
+        tigerDiv.classList.remove('tiger-talk-animation');
+        tigerDiv.style.backgroundImage = "url('./avatars/tiger/talk-animation.png')";
+        tigerDiv.style.width = "308px";
+        tigerDiv.style.height = "320px";
+        tigerDiv.style.backgroundSize = "1024px 1024px";
+        tigerDiv.style.backgroundPosition = "-40px -32px";
+    }
+}
+
+function showTigerTalking(tigerDiv) {
+    if (tigerDiv) {
+        tigerDiv.classList.add('tiger-talk-animation');
+        tigerDiv.style.backgroundImage = "";
+        tigerDiv.style.backgroundPosition = "";
+        tigerDiv.style.backgroundSize = "";
+    }
+}
+
+// --- Shared Wait for Enter or Timeout ---
+function waitForEnterOrTimeout(ms) {
+    return new Promise(resolve => {
+        let done = false;
+        function onKey(e) {
+            if (done) return;
+            if (e.key === "Enter") {
+                done = true;
+                window.removeEventListener('keydown', onKey, true);
+                resolve("enter");
+            }
+        }
+        window.addEventListener('keydown', onKey, true);
+        setTimeout(() => {
+            if (!done) {
+                done = true;
+                window.removeEventListener('keydown', onKey, true);
+                resolve("timeout");
+            }
+        }, ms);
+    });
+}
 
 // Show level intro: name, pause, description, pause, then start level
 async function showLevelIntro(levelObj) {
     isLevelIntroPlaying = true;
 
-    // Show tiger talking animation in .word-icons during intro
-    if (wordIconsElement) {
-        wordIconsElement.innerHTML = '<div class="tiger-talk-animation"></div>';
-    }
-    const tigerDiv = wordIconsElement ? wordIconsElement.querySelector('.tiger-talk-animation') : null;
-
     // Cancel any ongoing speech/audio
     if (window.speechSynthesis) window.speechSynthesis.cancel();
-    // Try to stop any playing HTML5 audio (best effort)
     document.querySelectorAll('audio').forEach(a => { try { a.pause(); a.currentTime = 0; } catch {} });
 
     if (!levelObj) {
@@ -160,41 +210,23 @@ async function showLevelIntro(levelObj) {
         return;
     }
 
-    // Helper to pause animation and show frame 1
-    function showTigerIdle() {
-        if (tigerDiv) {
-            tigerDiv.classList.remove('tiger-talk-animation');
-            tigerDiv.style.backgroundImage = "url('./avatars/tiger/talk-animation.png')";
-            tigerDiv.style.width = "308px";
-            tigerDiv.style.height = "320px";
-            tigerDiv.style.backgroundSize = "1024px 1024px";
-            tigerDiv.style.backgroundPosition = "-40px -32px";
-        }
-    }
-    // Helper to start animation
-    function showTigerTalking() {
-        if (tigerDiv) {
-            tigerDiv.classList.add('tiger-talk-animation');
-            tigerDiv.style.backgroundImage = "";
-            tigerDiv.style.backgroundPosition = "";
-            tigerDiv.style.backgroundSize = "";
-        }
-    }
+    const tigerDiv = getTigerDiv();
 
     // Show level name
     displayElement.textContent = levelObj.name || "Level";
-    showTigerTalking();
+    showTigerTalking(tigerDiv);
     await speakWordAndWait(levelObj.name || "Level", true);
-    showTigerIdle();
-    await new Promise(resolve => setTimeout(resolve, 500));
+    showTigerIdle(tigerDiv);
+    // Wait for Enter or 1s pause (tiger is idle during pause)
+    await waitForEnterOrTimeout(1000);
 
     // Show description
     if (levelObj.description) {
         displayElement.textContent = levelObj.description;
-        showTigerTalking();
+        showTigerTalking(tigerDiv);
         await speakWordAndWait(levelObj.description, true);
-        showTigerIdle();
-        await new Promise(resolve => setTimeout(resolve, 500));
+        showTigerIdle(tigerDiv);
+        await waitForEnterOrTimeout(1500);
     }
 
     // Hide intro and start level
@@ -795,8 +827,9 @@ async function initGame() {
     levelSelectElement.addEventListener('change', async (e) => { if (gameStarted) { await setLevel(parseInt(e.target.value)); } });
 
     // Click or keydown anywhere to start
-    function startOnUserAction() {
+    async function startOnUserAction() {
         if (!gameStarted) {
+            await playAppIntro();
             startGame();
         }
         document.removeEventListener('click', startOnUserAction);
@@ -807,3 +840,47 @@ async function initGame() {
 }
 
 window.onload = initGame;
+
+// --- App Intro Sequence ---
+async function playAppIntro() {
+    if (isAppIntroPlaying) return;
+    isAppIntroPlaying = true;
+
+    // Cancel any ongoing speech/audio
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    document.querySelectorAll('audio').forEach(a => { try { a.pause(); a.currentTime = 0; } catch {} });
+
+    const tigerDiv = getTigerDiv();
+
+    // Load intro.json
+    let introData = null;
+    try {
+        const res = await fetch('./data/intro.json');
+        if (!res.ok) throw new Error("Intro.json not found");
+        introData = await res.json();
+    } catch (e) {
+        displayElement.textContent = "Fehler beim Laden des Intros!";
+        isAppIntroPlaying = false;
+        if (wordIconsElement) wordIconsElement.innerHTML = '';
+        return;
+    }
+    const introArr = Array.isArray(introData.intro) ? introData.intro : [];
+
+    // Play each intro sentence
+    for (let i = 0; i < introArr.length; ++i) {
+        const { text, pause } = introArr[i];
+        displayElement.textContent = text;
+        showTigerTalking(tigerDiv);
+        await speakWordAndWait(text, true);
+        showTigerIdle(tigerDiv);
+        // Wait for Enter or pause (default 0.5s) while tiger is idle
+        await waitForEnterOrTimeout((typeof pause === "number" ? pause : 0.5) * 1000);
+    }
+
+    // End intro
+    displayElement.textContent = "";
+    isAppIntroPlaying = false;
+    if (wordIconsElement) wordIconsElement.innerHTML = '';
+}
+
+// Hook up intro button

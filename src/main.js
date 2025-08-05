@@ -580,7 +580,6 @@ function updateDisplayAndCheckState() {
             // Level finished!
             progress = 100;
             levelUp(); // Plays fanfare and shows message
-            setTimeout(generateNewWord, 2000); // Longer wait for fanfare
         } else {
             // Just the word is finished
             playWordCompleteSound();

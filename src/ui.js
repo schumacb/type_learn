@@ -123,15 +123,15 @@ export function updateDisplay(currentWord, currentIndex, caseSensitive) {
     displayElement.textContent = displayWord.split('').map((char, i) => i === currentIndex ? `[${char}]` : char).join('');
 }
 
-export function populateLevelSelector(gameLevels) {
+export function populateLevelSelector(levelManifest) {
     levelSelectElement.innerHTML = "";
-    gameLevels.forEach((levelObj, idx) => {
-        let name = (levelObj && levelObj.name) ? levelObj.name : `Level ${idx}`;
-        let desc = (levelObj && levelObj.description) ? levelObj.description : "";
+    levelManifest.forEach((level, idx) => {
         const option = document.createElement("option");
         option.value = idx;
-        option.textContent = `${idx} - ${name}`;
-        if (desc) option.title = desc;
+        option.textContent = `${idx} - ${level.name}`;
+        if (level.description) {
+            option.title = level.description;
+        }
         levelSelectElement.appendChild(option);
     });
 }

@@ -1,22 +1,102 @@
 [
-  "level-0.json",
-  "level-1.json",
-  "level-2.json",
-  "level-3.json",
-  "level-4.json",
-  "level-5.json",
-  "level-6.json",
-  "level-7.json",
-  "level-8.json",
-  "level-9.json",
-  "level-10.json",
-  "level-11.json",
-  "level-12.json",
-  "level-13.json",
-  "level-14.json",
-  "level-15.json",
-  "level-16.json",
-  "level-17.json",
-  "level-18.json",
-  "level-19.json"
+  {
+    "file": "level-0.json",
+    "name": "Linke Hand Mittelreihe",
+    "description": "Lerne die Buchstaben der linken Hand auf der Mittelreihe zu tippen."
+  },
+  {
+    "file": "level-1.json",
+    "name": "Rechte Hand Mittelreihe",
+    "description": "Lerne die Buchstaben der rechten Hand auf der Mittelreihe zu tippen."
+  },
+  {
+    "file": "level-2.json",
+    "name": "Komplette Mittelreihe",
+    "description": "Lerne alle Buchstaben der Mittelreihe mit beiden Händen zu tippen."
+  },
+  {
+    "file": "level-3.json",
+    "name": "Linke Hand obere Reihe",
+    "description": "Lerne die Buchstaben der linken Hand auf der oberen Reihe zu tippen."
+  },
+  {
+    "file": "level-4.json",
+    "name": "Rechte Hand obere Reihe",
+    "description": "Lerne die Buchstaben der rechten Hand auf der oberen Reihe zu tippen."
+  },
+  {
+    "file": "level-5.json",
+    "name": "Komplette Mittel- und obere Reihe",
+    "description": "Lerne alle Buchstaben der Mittel- und oberen Reihe mit beiden Händen zu tippen."
+  },
+  {
+    "file": "level-6.json",
+    "name": "Komplette obere Reihe",
+    "description": "Lerne alle Buchstaben der oberen Reihe mit beiden Händen zu tippen."
+  },
+  {
+    "file": "level-7.json",
+    "name": "Linke Hand untere Reihe",
+    "description": "Lerne die Buchstaben der linken Hand auf der unteren Reihe zu tippen."
+  },
+  {
+    "file": "level-8.json",
+    "name": "Rechte Hand untere Reihe",
+    "description": "Lerne die Buchstaben der rechten Hand auf der unteren Reihe zu tippen."
+  },
+  {
+    "file": "level-9.json",
+    "name": "Komplette untere Reihe",
+    "description": "Lerne alle Buchstaben der unteren Reihe mit beiden Händen zu tippen."
+  },
+  {
+    "file": "level-10.json",
+    "name": "Mittlere und untere Reihe",
+    "description": "Lerne alle Buchstaben der mittleren und unteren Reihe mit beiden Händen zu tippen."
+  },
+  {
+    "file": "level-11.json",
+    "name": "Das Alphabet",
+    "description": "Lerne das gesamte Alphabet zu tippen."
+  },
+  {
+    "file": "level-12.json",
+    "name": "Häufige Buchstabenpaare",
+    "description": "Übe das Tippen von häufigen Buchstabenpaaren. Diese Kombinationen kommen oft in Wörtern vor."
+  },
+  {
+    "file": "level-13.json",
+    "name": "Einfache Silben",
+    "description": "Übe das Tippen von einfachen Silben."
+  },
+  {
+    "file": "level-14.json",
+    "name": "Häufige Buchstabenkombinationen",
+    "description": "Übe das Tippen von häufigen Buchstabenkombinationen. Diese kommen oft in Wörtern vor."
+  },
+  {
+    "file": "level-15.json",
+    "name": "Einfache Wörter",
+    "description": "Übe das Tippen von einfachen deutschen Wörtern."
+  },
+  {
+    "file": "level-16.json",
+    "name": "Alltagswörter und Phrasen",
+    "description": "Übe das Tippen von häufigen Alltagswörtern und einfachen Phrasen."
+  },
+  {
+    "file": "level-17.json",
+    "name": "Einfache Sätze",
+    "description": "Übe das Tippen von einfachen Sätzen."
+  },
+  {
+    "file": "level-18.json",
+    "name": "Kurze Geschichten",
+    "description": "Übe das Tippen von kurzen Geschichten und Alltagssituationen."
+  },
+  {
+    "file": "level-19.json",
+    "name": "Längere Texte",
+    "description": "Übe das Tippen von längeren Texten und komplexeren Sätzen."
+  }
 ]

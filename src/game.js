@@ -20,7 +20,7 @@ import {
     clearSuccessMessage
 } from './ui.js';
 
-let gameLevels = [];
+let levelManifest = [];
 let successMessages = [];
 
 let gameState = {
@@ -34,6 +34,7 @@ let gameState = {
     usedWords: [],
     isLevelIntroPlaying: false,
     gameStarted: false,
+    currentLevelData: null,
 };
 
 export async function loadGameData() {
@@ -43,7 +44,6 @@ export async function loadGameData() {
             const res = await fetch('./data/success-messages.json');
             if (res.ok) {
                 successMessages = await res.json();
-                console.log("Loaded success messages:", successMessages.length);
             } else {
                 console.warn("Could not load success-messages.json");
                 successMessages = [];
@@ -53,32 +53,17 @@ export async function loadGameData() {
             successMessages = [];
         }
 
-        // Load level data from manifest
+        // Load level manifest
         const manifestRes = await fetch('./data/levels.json');
         if (!manifestRes.ok) {
             throw new Error("Could not load level manifest.");
         }
-        const levelFiles = await manifestRes.json();
+        levelManifest = await manifestRes.json();
 
-        gameLevels = [];
-        for (const levelFile of levelFiles) {
-            try {
-                const res = await fetch(`./data/${levelFile}`);
-                if (!res.ok) {
-                    console.warn(`Could not load level file: ${levelFile}`);
-                    continue;
-                }
-                const levelObj = await res.json();
-                gameLevels.push(levelObj);
-            } catch (e) {
-                console.error(`Error loading or parsing level file: ${levelFile}`, e);
-            }
+        if (levelManifest.length === 0) {
+            throw new Error("No levels found in manifest.");
         }
-        if (gameLevels.length === 0) {
-            throw new Error("No level files found.");
-        }
-        console.log("Loaded " + gameLevels.length + " level files.");
-        return gameLevels;
+        return levelManifest;
     } catch (error) {
         console.error("Fatal Error: Could not load game data.", error);
         displayElement.textContent = "Fehler beim Laden der Spieldaten!";
@@ -86,7 +71,28 @@ export async function loadGameData() {
     }
 }
 
-async function showLevelIntro(levelObj) {
+async function loadLevel(levelIndex) {
+    if (!levelManifest[levelIndex]) {
+        console.error(`Error: Level ${levelIndex} not found in manifest.`);
+        return false;
+    }
+    const levelFile = levelManifest[levelIndex].file;
+    try {
+        const res = await fetch(`./data/${levelFile}`);
+        if (!res.ok) {
+            throw new Error(`Failed to fetch level data: ${levelFile}`);
+        }
+        gameState.currentLevelData = await res.json();
+        return true;
+    } catch (error) {
+        console.error(`Error loading level ${levelIndex}:`, error);
+        gameState.currentLevelData = null;
+        return false;
+    }
+}
+
+async function showLevelIntro() {
+    const levelObj = getCurrentLevelObj();
     gameState.isLevelIntroPlaying = true;
     showTigerAnimation('talk');
 
@@ -120,14 +126,12 @@ async function showLevelIntro(levelObj) {
 }
 
 function getCurrentLevelObj() {
-    return gameLevels[gameState.level] || {};
+    return gameState.currentLevelData;
 }
 
 function getWordsForLevel() {
     const levelObj = getCurrentLevelObj();
-    if (Array.isArray(levelObj)) {
-        return levelObj;
-    }
+    if (!levelObj) return [];
     return Array.isArray(levelObj.items) ? levelObj.items : [];
 }
 
@@ -241,12 +245,14 @@ function updateDisplayAndCheckState() {
 async function levelUp(showSuccessMessage = true) {
     playLevelUpFanfare();
     gameState.level++;
-    if (gameState.level > gameLevels.length - 1) gameState.level = gameLevels.length - 1;
+    if (gameState.level > levelManifest.length - 1) gameState.level = levelManifest.length - 1;
     levelDisplayElement.textContent = gameState.level;
     levelSelectElement.value = gameState.level;
     gameState.progress = 0;
     progressElement.style.width = '0%';
     gameState.usedWords = [];
+
+    await loadLevel(gameState.level);
 
     if (showSuccessMessage) {
         let msg = { text: "Super gemacht!", icon: "🎉" };
@@ -260,7 +266,7 @@ async function levelUp(showSuccessMessage = true) {
     }
 
     initKeyboard(getCurrentLevelObj(), handleKeyPress);
-    await showLevelIntro(gameLevels[gameState.level]);
+    await showLevelIntro();
 }
 
 export async function levelDown() {
@@ -271,8 +277,10 @@ export async function levelDown() {
     gameState.progress = 0;
     progressElement.style.width = '0%';
     gameState.usedWords = [];
+
+    await loadLevel(gameState.level);
     initKeyboard(getCurrentLevelObj(), handleKeyPress);
-    await showLevelIntro(gameLevels[gameState.level]);
+    await showLevelIntro();
 }
 
 export async function setLevel(newLevel) {
@@ -282,21 +290,25 @@ export async function setLevel(newLevel) {
     gameState.progress = 0;
     progressElement.style.width = '0%';
     gameState.usedWords = [];
+
+    await loadLevel(gameState.level);
     initKeyboard(getCurrentLevelObj(), handleKeyPress);
-    await showLevelIntro(gameLevels[gameState.level]);
+    await showLevelIntro();
 }
 
 export async function startGame() {
     if (gameState.gameStarted) return;
 
-    if (gameLevels.length === 0) {
+    if (levelManifest.length === 0) {
         console.log("Data not loaded yet, awaiting load...");
-        gameLevels = await loadGameData();
+        await loadGameData();
     }
+
+    await loadLevel(gameState.level);
 
     gameState.gameStarted = true;
     displayElement.style.cursor = "default";
-    await showLevelIntro(gameLevels[gameState.level]);
+    await showLevelIntro();
 }
 
 export function getGameState() {

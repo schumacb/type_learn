@@ -57,41 +57,30 @@ Mit dem Skript [`scripts/generate-audio.js`](scripts/generate-audio.js:1) kannst
 
 ### 2. TTS-Anbieter & Stimme konfigurieren
 
-Das Projekt unterstützt verschiedene Text-to-Speech-Anbieter (TTS) für die Audioausgabe.
-**WICHTIG:**
-- **API-Keys** (`XI_API_KEY`, `OPENAI_API_KEY`) gehören ausschließlich in die `.env`-Datei im Projektverzeichnis.
-- **Alle anderen Einstellungen** (`TTS_PROVIDER`, `OPENAI_VOICE`, `ELEVENLABS_VOICE`) werden in der Datei `scripts/generate-audio.config` (JSON-Format) vorgenommen.
+Das Projekt unterstützt verschiedene Text-to-Speech-Anbieter (TTS) für die Audioausgabe. Die gesamte Konfiguration erfolgt über eine `.env`-Datei im Projektverzeichnis.
 
-##### Beispiel `.env` (nur API-Keys):
+Lege dazu eine Datei mit dem Namen `.env` im Hauptverzeichnis des Projekts an.
+
+##### Beispiel `.env`:
 
 ```
-XI_API_KEY=dein-elevenlabs-api-key
+# Der gewünschte TTS-Anbieter ("openai" oder "elevenlabs"). Standard ist "elevenlabs".
+TTS_PROVIDER=openai
+
+# API-Schlüssel für den gewählten Anbieter
 OPENAI_API_KEY=dein-openai-api-key
-```
+XI_API_KEY=dein-elevenlabs-api-key
 
-##### Beispiel `scripts/generate-audio.config` (Konfiguration):
-
-```json
-{
-  "TTS_PROVIDER": "openai",
-  "OPENAI_VOICE": "shimmer",
-  "ELEVENLABS_VOICE": "NBqeXKdZHweef6y0B67V"
-}
+# Die gewünschte Stimme für den jeweiligen Anbieter (optional)
+OPENAI_VOICE=shimmer
+ELEVENLABS_VOICE=NBqeXKdZHweef6y0B67V
 ```
 
 > **Hinweis:**
-> - Für **OpenAI**: Stimmen wie `"shimmer"` oder `"onyx"` unterstützen Deutsch. Siehe die [OpenAI TTS-Dokumentation](https://platform.openai.com/docs/guides/text-to-speech/voice-options) für eine vollständige Liste.
-> - Für **ElevenLabs**: Die Voice-ID bestimmt die Stimme und Sprache. Siehe das ElevenLabs-Dashboard für verfügbare Stimmen und deren IDs.
-> - Die Datei `scripts/generate-audio.config` überschreibt die entsprechenden Einstellungen aus der `.env`, falls beide vorhanden sind.
-
-#### Benötigte Einträge
-
-- **In `.env`:**
-  - Für ElevenLabs: `XI_API_KEY`
-  - Für OpenAI: `OPENAI_API_KEY`
-- **In `scripts/generate-audio.config`:**
-  - `TTS_PROVIDER` (Pflicht: `"elevenlabs"` oder `"openai"`)
-  - Stimmen-Variablen (`OPENAI_VOICE`, `ELEVENLABS_VOICE`) sind optional. Wird keine gesetzt, wird eine Standardstimme verwendet.
+> - Du musst nur den API-Key für den Anbieter angeben, den du in `TTS_PROVIDER` ausgewählt hast.
+> - Für **OpenAI**: Eine Liste der verfügbaren Stimmen findest du in der [OpenAI TTS-Dokumentation](https://platform.openai.com/docs/guides/text-to-speech/voice-options).
+> - Für **ElevenLabs**: Die Voice-ID bestimmt die Stimme und Sprache. Du findest sie in deinem ElevenLabs-Dashboard.
+> - Wenn keine Stimme (`OPENAI_VOICE` oder `ELEVENLABS_VOICE`) angegeben wird, verwendet das Skript eine Standardstimme.
 
 ### 3. Skript ausführen
 

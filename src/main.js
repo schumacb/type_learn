@@ -26,9 +26,9 @@ async function initGame() {
     populateLevelSelector(gameLevels);
     levelSelectElement.value = gameState.level;
 
-    prevLevelButton.addEventListener('click', async () => { if (getGameState().gameStarted) { await levelDown(); } });
-    nextLevelButton.addEventListener('click', async () => { if (getGameState().gameStarted) { await setLevel(getGameState().level + 1); } });
-    levelSelectElement.addEventListener('change', async (e) => { if (getGameState().gameStarted) { await setLevel(parseInt(e.target.value)); } });
+    prevLevelButton.addEventListener('click', async () => { await levelDown(); });
+    nextLevelButton.addEventListener('click', async () => { await setLevel(getGameState().level + 1); });
+    levelSelectElement.addEventListener('change', async (e) => { await setLevel(parseInt(e.target.value)); });
 
     async function startOnUserAction(event) {
         if (!getGameState().gameStarted) {

@@ -26,13 +26,13 @@
   },
   {
     "file": "level-5.json",
-    "name": "Komplette Mittel- und obere Reihe",
-    "description": "Lerne alle Buchstaben der Mittel- und oberen Reihe mit beiden Händen zu tippen."
+    "name": "Komplette obere Reihe",
+    "description": "Lerne alle Buchstaben der oberen Reihe mit beiden Händen zu tippen."
   },
   {
     "file": "level-6.json",
-    "name": "Komplette obere Reihe",
-    "description": "Lerne alle Buchstaben der oberen Reihe mit beiden Händen zu tippen."
+    "name": "Komplette Mittel- und obere Reihe",
+    "description": "Lerne alle Buchstaben der Mittel- und oberen Reihe mit beiden Händen zu tippen."
   },
   {
     "file": "level-7.json",

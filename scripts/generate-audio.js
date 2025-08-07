@@ -3,6 +3,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import { normalizeFilename } from '../src/utils.js';
 // Always load .env from project root, regardless of CWD
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,30 +25,9 @@ let openai = null;
  *   "TTS_PROVIDER": "openai"
  * }
  */
-let TTS_PROVIDER = process.env.TTS_PROVIDER;
+let TTS_PROVIDER = process.env.TTS_PROVIDER || 'elevenlabs';
 let OPENAI_VOICE = process.env.OPENAI_VOICE;
 let ELEVENLABS_VOICE = process.env.ELEVENLABS_VOICE;
-
-try {
-    const configPath = path.join(__dirname, 'generate-audio.config');
-    if (fs.existsSync(configPath)) {
-        const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-        if (!TTS_PROVIDER && configData && typeof configData.TTS_PROVIDER === 'string' && configData.TTS_PROVIDER.trim()) {
-            TTS_PROVIDER = configData.TTS_PROVIDER.trim();
-        }
-        if (!OPENAI_VOICE && configData && typeof configData.OPENAI_VOICE === 'string' && configData.OPENAI_VOICE.trim()) {
-            OPENAI_VOICE = configData.OPENAI_VOICE.trim();
-        }
-        if (!ELEVENLABS_VOICE && configData && typeof configData.ELEVENLABS_VOICE === 'string' && configData.ELEVENLABS_VOICE.trim()) {
-            ELEVENLABS_VOICE = configData.ELEVENLABS_VOICE.trim();
-        }
-    }
-} catch (err) {
-    // Ignore config file errors, fallback to default
-}
-if (!TTS_PROVIDER) {
-    TTS_PROVIDER = 'elevenlabs';
-}
 // ------------------------------
 
 // --- CONFIGURATION ---
@@ -228,20 +208,6 @@ async function main() {
         } else {
             console.log(`Removed ${removed} unused audio file(s).`);
         }
-    }
-
-    // Normalize filename: underscores for spaces, ASCII for special chars.
-    function normalizeFilename(str) {
-        return str
-            .replaceAll(" ", "_")
-            .replaceAll("Ä", "AE")
-            .replaceAll("Ö", "OE")
-            .replaceAll("Ü", "UE")
-            .replaceAll("ä", "ae")
-            .replaceAll("ö", "oe")
-            .replaceAll("ü", "ue")
-            .replaceAll("ß", "SS")
-            .replace(/[^A-Za-z0-9_]/g, ""); // Remove any other non-ASCII chars
     }
 
     async function generateAudioForWord(word, customFileName, force = false) {

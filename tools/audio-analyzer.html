@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Level Analyzer and Homogenizer</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 2em;
+        }
+        h1 {
+            text-align: center;
+        }
+        #fileInput {
+            display: block;
+            margin: 2em auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2em;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.5em;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .outlier {
+            background-color: #ffdddd;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 2em;
+        }
+        button {
+            padding: 0.5em 1em;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        #voiceAnalysis {
+            margin-top: 2em;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin-top: 1em;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@bambuser/lamejs@1.2.1/lame.min.js"></script>
+</head>
+<body>
+    <h1>Audio Level Analyzer and Homogenizer</h1>
+    <p>
+        <strong>Instructions:</strong><br>
+        1. Click "Choose Files" to select one or more audio files from your computer.<br>
+        2. Click the "Analyze" button to calculate the volume and identify loudness outliers.<br>
+        3. Click "Homogenize All" to adjust all tracks to the average volume.<br>
+        4. Use the "Play" buttons to compare the original and homogenized versions.<br>
+        5. Use the "Download" button to save the homogenized audio as an MP3 file.<br>
+        6. Click "Analyze" in the "Voice Analysis" column to see the frequency spectrum and calculate the pitch of a voice.
+    </p>
+    <input type="file" id="fileInput" multiple accept="audio/*">
+
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>Filename</th>
+                <th>Volume (dBFS)</th>
+                <th>Outlier</th>
+                <th>Play Original</th>
+                <th>Play Homogenized</th>
+                <th>Download Homogenized</th>
+                <th>Voice Analysis</th>
+                <th>Pitch (Hz)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Results will be populated by JavaScript -->
+        </tbody>
+    </table>
+
+    <div class="controls">
+        <button id="analyzeButton">Analyze</button>
+        <button id="homogenizeButton" disabled>Homogenize All</button>
+    </div>
+
+    <div id="voiceAnalysis">
+        <h2>Voice Analysis</h2>
+        <canvas id="frequencyCanvas" width="1024" height="200"></canvas>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const analyzeButton = document.getElementById('analyzeButton');
+        const homogenizeButton = document.getElementById('homogenizeButton');
+        const resultsTableBody = document.querySelector('#resultsTable tbody');
+        const frequencyCanvas = document.getElementById('frequencyCanvas');
+
+        let audioFilesInfo = [];
+        let audioContext = null;
+
+        function getAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioContext;
+        }
+
+        resultsTableBody.addEventListener('click', (event) => {
+            const target = event.target;
+            const index = target.dataset.index;
+
+            if (target.classList.contains('play-original-btn')) {
+                playAudio(audioFilesInfo[index].audioBuffer);
+            } else if (target.classList.contains('play-homogenized-btn')) {
+                playAudio(audioFilesInfo[index].homogenizedBuffer);
+            } else if (target.classList.contains('download-btn')) {
+                const index = target.dataset.index;
+                downloadMp3(audioFilesInfo[index]);
+            } else if (target.classList.contains('voice-analysis-btn')) {
+                const index = target.dataset.index;
+                const info = audioFilesInfo[index];
+                const pitchCell = target.closest('tr').querySelector('.pitch-value');
+
+                if (pitchCell) {
+                    pitchCell.textContent = 'Analyzing...';
+                }
+
+                // Visualize immediately
+                drawFrequencySpectrum(info.audioBuffer, info.file.name);
+
+                // Defer the heavy calculation to prevent UI freeze
+                setTimeout(() => {
+                    const pitch = findFundamentalFreq(info.audioBuffer, getAudioContext().sampleRate);
+                    if (pitchCell) {
+                        pitchCell.textContent = pitch ? pitch.toFixed(2) : 'N/A';
+                    }
+                }, 10);
+            }
+        });
+
+        function drawFrequencySpectrum(buffer, fileName) {
+            const canvas = frequencyCanvas;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.offsetWidth * dpr;
+            canvas.height = canvas.offsetHeight * dpr;
+            ctx.scale(dpr, dpr);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const offlineContext = new OfflineAudioContext(1, buffer.length, buffer.sampleRate);
+            const source = offlineContext.createBufferSource();
+            source.buffer = buffer;
+
+            const analyser = offlineContext.createAnalyser();
+            analyser.fftSize = 2048;
+
+            source.connect(analyser);
+            analyser.connect(offlineContext.destination);
+            source.start();
+
+            offlineContext.startRendering().then(renderedBuffer => {
+                const frequencyData = new Float32Array(analyser.frequencyBinCount);
+                analyser.getFloatFrequencyData(frequencyData);
+
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'rgb(0, 0, 0)';
+                ctx.beginPath();
+
+                const sliceWidth = canvas.offsetWidth * 1.0 / analyser.frequencyBinCount;
+                let x = 0;
+
+                for (let i = 0; i < analyser.frequencyBinCount; i++) {
+                    const v = (frequencyData[i] + 140) / 140; // Normalize dB to 0-1 range
+                    const y = v * canvas.offsetHeight;
+
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                    x += sliceWidth;
+                }
+
+                ctx.lineTo(canvas.width, canvas.height / 2);
+                ctx.stroke();
+
+                ctx.fillStyle = 'black';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Frequency Spectrum for: ${fileName}`, canvas.offsetWidth / 2, 20);
+            });
+        }
+
+        /**
+         * Finds the fundamental frequency of an audio buffer using an autocorrelation method.
+         * @param {AudioBuffer} buffer The audio buffer to analyze.
+         * @param {number} sampleRate The sample rate of the audio.
+         * @returns {number|null} The fundamental frequency in Hz, or null if not found.
+         */
+        function findFundamentalFreq(buffer, sampleRate) {
+            const bufferSize = buffer.length;
+            const data = buffer.getChannelData(0);
+
+            // 1. Autocorrelation
+            const autoCorrelate = new Float32Array(bufferSize);
+
+            for (let lag = 0; lag < bufferSize; lag++) {
+                let sum = 0;
+                for (let i = 0; i < bufferSize - lag; i++) {
+                    sum += data[i] * data[i + lag];
+                }
+                autoCorrelate[lag] = sum;
+            }
+
+            // 2. Find the peak
+            let d = 0;
+            while (autoCorrelate[d] > autoCorrelate[d + 1]) d++;
+
+            let maxval = -1, maxpos = -1;
+            for (let i = d; i < bufferSize; i++) {
+                if (autoCorrelate[i] > maxval) {
+                    maxval = autoCorrelate[i];
+                    maxpos = i;
+                }
+            }
+
+            if (maxpos === -1) return null;
+
+            // 3. Return frequency
+            return sampleRate / maxpos;
+        }
+
+        function downloadMp3(info) {
+            if (typeof lamejs === 'undefined') {
+                return alert('MP3 encoder library not loaded. Please check your internet connection.');
+            }
+            const buffer = info.homogenizedBuffer;
+            if (!buffer) return;
+
+            const mp3encoder = new lamejs.Mp3Encoder(buffer.numberOfChannels, buffer.sampleRate, 128); // 128 kbps
+
+            const samplesLeft = buffer.getChannelData(0);
+            const samplesRight = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : samplesLeft;
+            const int16Samples = new Int16Array(buffer.length);
+
+            for (let i = 0; i < buffer.length; i++) {
+                // This simple interleaving works for mono and stereo, but for stereo it averages the channels.
+                // A more sophisticated approach would handle them separately.
+                const sample = (samplesLeft[i] + samplesRight[i]) / (buffer.numberOfChannels > 1 ? 2 : 1);
+                int16Samples[i] = Math.max(-1, Math.min(1, sample)) * 32767;
+            }
+
+            const mp3Data = [];
+            const bufferSize = 1152; // MP3 frame size
+            for (let i = 0; i < int16Samples.length; i += bufferSize) {
+                const chunk = int16Samples.subarray(i, i + bufferSize);
+                const mp3buf = mp3encoder.encodeBuffer(chunk);
+                if (mp3buf.length > 0) {
+                    mp3Data.push(new Uint8Array(mp3buf));
+                }
+            }
+            const mp3buf = mp3encoder.flush();
+            if (mp3buf.length > 0) {
+                mp3Data.push(new Uint8Array(mp3buf));
+            }
+
+            const blob = new Blob(mp3Data, { type: 'audio/mp3' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            const originalName = info.file.name;
+            const baseName = originalName.substring(0, originalName.lastIndexOf('.'));
+            a.download = `${baseName}_homogenized.mp3`;
+
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        function playAudio(buffer) {
+            if (!buffer) return;
+            const audioContext = getAudioContext();
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioContext.destination);
+            source.start(0);
+        }
+
+        analyzeButton.addEventListener('click', async () => {
+            const files = fileInput.files;
+            if (files.length === 0) {
+                alert('Please select audio files first.');
+                return;
+            }
+
+            resultsTableBody.innerHTML = '<tr><td colspan="8">Analyzing...</td></tr>';
+            audioFilesInfo = [];
+            const audioContext = getAudioContext();
+
+            for (const file of files) {
+                const arrayBuffer = await file.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                const rms = calculateRMS(audioBuffer);
+                const dbfs = 20 * Math.log10(rms);
+
+                audioFilesInfo.push({
+                    file,
+                    audioBuffer,
+                    rms,
+                    dbfs
+                });
+            }
+
+            resultsTableBody.innerHTML = ''; // Clear "Analyzing..." message
+            calculateOutliers();
+            displayResults();
+            homogenizeButton.disabled = false;
+        });
+
+        homogenizeButton.addEventListener('click', () => {
+            homogenize();
+            displayResults(); // Re-render to update button states
+            alert('Homogenization complete!');
+        });
+
+        function displayResults() {
+            resultsTableBody.innerHTML = '';
+            const averageDbfs = getAverageDbfs();
+
+            audioFilesInfo.forEach((info, index) => {
+                const row = document.createElement('tr');
+                if (info.isOutlier) {
+                    row.classList.add('outlier');
+                }
+                row.innerHTML = `
+                    <td>${info.file.name}</td>
+                    <td>${info.dbfs.toFixed(2)} (Avg: ${averageDbfs.toFixed(2)})</td>
+                    <td class="outlier-status">${info.isOutlier ? 'Yes' : 'No'}</td>
+                    <td><button class="play-original-btn" data-index="${index}">Play</button></td>
+                    <td><button class="play-homogenized-btn" data-index="${index}" ${!info.homogenizedBuffer ? 'disabled' : ''}>Play</button></td>
+                    <td><button class="download-btn" data-index="${index}" ${!info.homogenizedBuffer ? 'disabled' : ''}>Download</button></td>
+                    <td><button class="voice-analysis-btn" data-index="${index}">Analyze</button></td>
+                    <td class="pitch-value">N/A</td>
+                `;
+                resultsTableBody.appendChild(row);
+            });
+        }
+
+        function getAverageDbfs() {
+            if (audioFilesInfo.length === 0) return 0;
+            const totalDbfs = audioFilesInfo.reduce((sum, info) => sum + info.dbfs, 0);
+            return totalDbfs / audioFilesInfo.length;
+        }
+
+        function homogenize() {
+            if (audioFilesInfo.length === 0) return;
+
+            const totalRms = audioFilesInfo.reduce((sum, info) => sum + info.rms, 0);
+            const targetRms = totalRms / audioFilesInfo.length;
+            console.log(`Target RMS: ${targetRms}`);
+
+            const audioContext = getAudioContext();
+
+            audioFilesInfo.forEach(info => {
+                const gain = targetRms / info.rms;
+                if (gain > 10) { // Safety clip to prevent extreme amplification
+                    console.warn(`Gain for ${info.file.name} is very high (${gain.toFixed(2)}). Clipping to 10.`);
+                    gain = 10;
+                }
+
+                const originalBuffer = info.audioBuffer;
+                const homogenizedBuffer = audioContext.createBuffer(
+                    originalBuffer.numberOfChannels,
+                    originalBuffer.length,
+                    originalBuffer.sampleRate
+                );
+
+                for (let channel = 0; channel < originalBuffer.numberOfChannels; channel++) {
+                    const originalData = originalBuffer.getChannelData(channel);
+                    const homogenizedData = homogenizedBuffer.getChannelData(channel);
+                    for (let i = 0; i < originalData.length; i++) {
+                        homogenizedData[i] = originalData[i] * gain;
+                    }
+                }
+                info.homogenizedBuffer = homogenizedBuffer;
+            });
+        }
+
+        function calculateOutliers() {
+            if (audioFilesInfo.length < 2) {
+                audioFilesInfo.forEach(info => info.isOutlier = false);
+                return;
+            };
+
+            const averageDbfs = getAverageDbfs();
+            const outlierThreshold = 3; // 3 dB
+
+            audioFilesInfo.forEach(info => {
+                info.isOutlier = Math.abs(info.dbfs - averageDbfs) > outlierThreshold;
+            });
+        }
+
+        function calculateRMS(audioBuffer) {
+            const data = audioBuffer.getChannelData(0); // Use the first channel
+            let sumOfSquares = 0;
+            for (let i = 0; i < data.length; i++) {
+                sumOfSquares += data[i] * data[i];
+            }
+            const meanSquare = sumOfSquares / data.length;
+            return Math.sqrt(meanSquare);
+        }
+    </script>
+</body>
+</html>

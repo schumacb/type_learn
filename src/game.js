@@ -19,6 +19,7 @@ import {
     displaySuccessMessage,
     clearSuccessMessage
 } from './ui.js';
+import { keyEls } from './ui.js';
 
 let levelManifest = [];
 let successMessages = [];
@@ -108,6 +109,7 @@ export async function playAppIntro() {
         if (!res.ok) throw new Error("intro.json not found");
         introData = await res.json();
     } catch (e) {
+        console.error("Error loading intro.json:", e);
         displayElement.textContent = "Fehler beim Laden des Intros!";
         gameState.isAppIntroPlaying = false;
         showTigerAnimation('hide');
@@ -118,7 +120,9 @@ export async function playAppIntro() {
         const { text, pause } = introArr[i];
         displayElement.textContent = text;
         showTigerAnimation('talk');
-        await speakWordAndWait(text, true, false);
+        try { await speakWordAndWait(text, true, false); } catch (e) {
+            console.error("Error speaking intro word:", e);
+        }
         showTigerAnimation('idle');
         await waitForEnterOrTimeout((typeof pause === "number" ? pause : 0.5) * 1000);
     }
@@ -163,14 +167,16 @@ async function showLevelIntro() {
     }
 
     displayElement.textContent = levelObj.name || "Level";
-    await speakWordAndWait(levelObj.name || "Level", true, gameState.isLevelIntroPlaying);
+    try { await speakWordAndWait(levelObj.name || "Level", true, gameState.isLevelIntroPlaying); } catch (e) {
+        console.error("Error speaking level intro:", e);
+    }
     showTigerAnimation('idle');
     await new Promise(resolve => setTimeout(resolve, game.introPause));
 
     if (levelObj.description) {
         displayElement.textContent = levelObj.description;
         showTigerAnimation('talk');
-        await speakWordAndWait(levelObj.description, true, gameState.isLevelIntroPlaying);
+        try { await speakWordAndWait(levelObj.description, true, gameState.isLevelIntroPlaying); } catch (e) {}
         showTigerAnimation('idle');
         await new Promise(resolve => setTimeout(resolve, game.introPause));
     }
@@ -233,7 +239,7 @@ export function handleKeyPress(key) {
     ];
     if (modifierKeys.includes(key)) return;
 
-    const keyElement = document.querySelector(`.key[data-key="${key}"]`);
+    const keyElement = (keyEls && keyEls.get(key)) || document.querySelector(`.key[data-key="${key}"]`);
     if (keyElement) {
         keyElement.classList.add('active');
         setTimeout(() => keyElement.classList.remove('active'), 150);
@@ -244,7 +250,8 @@ export function handleKeyPress(key) {
     const caseSensitive = levelObj.caseSensitive === true;
 
     let keyToCheck = key;
-    let charToCheck = gameState.currentWord[gameState.currentIndex];
+    let charToCheck = (gameState.currentWord || '')[gameState.currentIndex];
+    if (charToCheck == null) return;
 
     if (!caseSensitive) {
         keyToCheck = keyToCheck.toUpperCase();
@@ -316,7 +323,9 @@ async function levelUp(showSuccessMessage = true) {
             msg = successMessages[Math.floor(Math.random() * successMessages.length)];
         }
         displaySuccessMessage(msg);
-        await playSuccessAudio(msg.text);
+        try { await playSuccessAudio(msg.text); } catch (e) {
+            console.error("Error playing success audio:", e);
+        }
         await new Promise(resolve => setTimeout(resolve, game.introPause));
         clearSuccessMessage();
     }

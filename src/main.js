@@ -1,4 +1,20 @@
-import { initAudio } from './audio.js';
+import { initAudio, resumeAudio } from './audio.js';
+// Ensure AudioContext starts after first user gesture and swallow AbortError globally
+try {
+  window.addEventListener('pointerdown', () => { try { resumeAudio(); } catch(e) { console.error("Error resuming audio on pointerdown:", e); } }, { once: true, passive: true });
+  window.addEventListener('keydown', () => { try { resumeAudio(); } catch(e) { console.error("Error resuming audio on keydown:", e); } }, { once: true, passive: true });
+  window.addEventListener('unhandledrejection', (e) => {
+    const err = e && e.reason;
+    if (err && (err.name === 'AbortError' || String(err).includes('AbortError'))) {
+      e.preventDefault();
+    } else {
+      console.error("Unhandled promise rejection:", err);
+    }
+  });
+} catch (e) {
+  console.error("Error during global initialization:", e);
+  throw e;
+}
 import { loadGameData, handleKeyPress, levelDown, setLevel, startGame, getGameState, playAppIntro } from './game.js';
 import {
     correctElement,
@@ -48,7 +64,7 @@ async function initGame() {
     document.addEventListener('click', startOnUserAction);
     document.addEventListener('keydown', startOnUserAction);
 
-    document.addEventListener('keydown', (event) => {
+    document.addEventListener('keydown', (event) => { if (event.repeat) return;
         if (getGameState().gameStarted) {
             if (event.ctrlKey || event.altKey || event.metaKey) {
                 return;

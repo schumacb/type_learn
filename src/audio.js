@@ -54,7 +54,9 @@ export async function speakWordAndWait(word, force = false, isLevelIntroPlaying)
         try {
             currentSpokenAudio.pause();
             currentSpokenAudio.currentTime = 0;
-        } catch {}
+        } catch (e) {
+            console.error("Error resetting currentSpokenAudio:", e);
+        }
         currentSpokenAudio = null;
     }
     if (window.speechSynthesis) {
@@ -85,10 +87,14 @@ export async function speakWordAndWait(word, force = false, isLevelIntroPlaying)
                     if (currentSpokenAudio === audio) currentSpokenAudio = null;
                     resolve();
                 });
-                audio.play();
+                audio.play().catch((err) => {
+                    console.error("Error playing audio:", err);
+                    resolve();
+                });
             });
         }
     } catch (e) {
+        console.error("Error fetching local audio:", e);
         // fallback to TTS
     }
 
@@ -105,7 +111,10 @@ export async function speakWordAndWait(word, force = false, isLevelIntroPlaying)
             utterance.voice = germanVoice;
         }
         utterance.onend = () => resolve();
-        utterance.onerror = () => resolve();
+        utterance.onerror = (event) => {
+            console.error("TTS error:", event.error || event);
+            resolve();
+        };
         window.speechSynthesis.speak(utterance);
     });
 }
@@ -154,6 +163,21 @@ export function playSuccessAudio(text) {
         const audio = new Audio(audioPath);
         audio.addEventListener('ended', () => resolve());
         audio.addEventListener('error', () => resolve());
-        audio.play().catch(() => resolve());
+        audio.play().catch((err) => {
+            console.error("Error playing success audio:", err);
+            resolve();
+        });
     });
+}
+
+
+/** Ensure WebAudio can start on first user gesture (iOS/Safari) */
+export async function resumeAudio() {
+  try {
+    if (typeof audioContext !== 'undefined' && audioContext && audioContext.state !== 'running') {
+      await audioContext.resume();
+    }
+  } catch (e) {
+    console.error("Error resuming audio context:", e);
+  }
 }

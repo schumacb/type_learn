@@ -10,6 +10,7 @@ export const correctElement = document.getElementById('correct');
 export const errorsElement = document.getElementById('errors');
 export const levelDisplayElement = document.getElementById('levelDisplay');
 export const wordIconsElement = document.getElementById('wordIcons');
+export const keyEls = new Map();
 export const levelSelectElement = document.getElementById('levelSelect');
 export const prevLevelButton = document.getElementById('prevLevel');
 export const nextLevelButton = document.getElementById('nextLevel');
@@ -33,7 +34,7 @@ export function initKeyboard(level, handleKeyPress) {
 
     function createKeyElement(key) {
         const keyElement = document.createElement('div');
-        keyElement.className = 'key';
+        keyElement.className = 'key'; keyElement.setAttribute('role','button'); keyElement.setAttribute('tabindex','0'); keyElement.setAttribute('aria-label', key === ' ' ? 'Leertaste' : key);
         keyElement.textContent = key === ' ' ? 'Leertaste' : key;
         keyElement.dataset.key = key;
 
@@ -50,8 +51,13 @@ export function initKeyboard(level, handleKeyPress) {
         keyElement.style.borderColor = color;
 
         keyElement.addEventListener('click', () => handleKeyPress(key));
+        
+        try { keyEls.set(key, keyElement); } catch (e) {
+            console.error("Error registering key element in keyEls map:", e);
+            throw e;
+        }
         return keyElement;
-    }
+}
 
     function createKeyWithDisable(key) {
         const keyElement = createKeyElement(key);
@@ -100,6 +106,7 @@ export function initKeyboard(level, handleKeyPress) {
     keyboardElement.appendChild(spaceRowElement);
 }
 
+function cssEscapeAttr(v){ return String(v).replace(/"/g,'\\"'); }
 export function highlightNextKey(currentWord, currentIndex) {
     if (currentKeyElement) {
         currentKeyElement.classList.remove('highlight');
@@ -107,7 +114,7 @@ export function highlightNextKey(currentWord, currentIndex) {
     }
     const nextChar = currentWord[currentIndex];
     if (!nextChar) return;
-    currentKeyElement = document.querySelector(`.key[data-key="${nextChar}"]`);
+    currentKeyElement = (keyEls && keyEls.get(nextChar)) || document.querySelector(`.key[data-key="${cssEscapeAttr(nextChar)}"]`);
     if (currentKeyElement) {
         currentKeyElement.classList.add('highlight');
         const finger = fingerMap[nextChar] || 'kleiner';

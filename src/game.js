@@ -289,7 +289,6 @@ function updateDisplayAndCheckState() {
         if (gameState.progress >= 100) {
             gameState.progress = 100;
             levelUp();
-            setTimeout(generateNewWord, game.levelUpDelay);
         } else {
             playWordCompleteSound();
             createFireworks();

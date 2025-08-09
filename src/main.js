@@ -4,13 +4,19 @@ try {
   window.addEventListener('pointerdown', () => { try { resumeAudio(); } catch(e) { console.error("Error resuming audio on pointerdown:", e); } }, { once: true, passive: true });
   window.addEventListener('keydown', () => { try { resumeAudio(); } catch(e) { console.error("Error resuming audio on keydown:", e); } }, { once: true, passive: true });
   window.addEventListener('unhandledrejection', (e) => {
-    const err = e && e.reason;
-    if (err && (err.name === 'AbortError' || String(err).includes('AbortError'))) {
-      e.preventDefault();
-    } else {
-      console.error("Unhandled promise rejection:", err);
+    const err = e?.reason;
+    const name = err?.name || '';
+    const msg  = (err && err.message) ? err.message : String(err || '');
+    const isAbort =
+        /AbortError/i.test(name) ||
+        /\babort(ed)?\b/i.test(msg);
+    if (isAbort) {
+        e.preventDefault(); // expected during audio/tts cancellations
+        return;
     }
-  });
+    // Surface everything else so bugs don't get hidden
+    console.error('Unhandled promise rejection:', err);
+    });
 } catch (e) {
   console.error("Error during global initialization:", e);
   throw e;

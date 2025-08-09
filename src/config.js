@@ -16,7 +16,8 @@ export const fingerColors = {
     'kleiner': '#FF6B6B',   // Pinky
     'ring': '#4ECDC4',      // Ring finger
     'mittel': '#FFD166',    // Middle finger
-    'zeige': '#1B98E0'      // Index finger
+    'zeige': '#1B98E0',     // Index finger
+    'daumen': '#8884D8'     // Thumb
 };
 
 export const fingerMap = {
@@ -32,7 +33,7 @@ export const fingerMap = {
     'Y': 'kleiner', 'X': 'ring', 'C': 'mittel', 'V': 'zeige',
     'B': 'zeige', 'N': 'zeige', 'M': 'zeige',
     ',': 'kleiner', '.': 'kleiner',
-    ' ': 'zeige'
+    ' ': 'daumen'
 };
 
 export const rowOffsets = [0, -30, -5, 20];

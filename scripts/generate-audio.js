@@ -9,6 +9,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 import fs from 'fs';
+import { execFileSync } from 'child_process';
+// Audio normalization settings (override via environment variables)
+const TARGET_LUFS = process.env.TARGET_LUFS || "-16";
+const TP_CEIL = process.env.TP_CEIL || "-1.5";
+const LRA = process.env.LRA || "11";
 
 // --- TTS PROVIDER SELECTION ---
 let elevenlabs = null;
@@ -52,6 +57,25 @@ async function main() {
 
     // Parse force flag
     const force = args.includes('--force') || args.includes('-f');
+
+    // Hilfe-Flag (--help, -h)
+    const help = args.includes('--help') || args.includes('-h');
+    if (help) {
+        console.log(`
+Usage: node scripts/generate-audio.js [options] [Text] [CustomDateiname]
+
+Optionen:
+  --list-missing-unused, -l    Liste fehlende und unbenutzte Audiodateien
+  --force, -f                  Überschreibe bereits vorhandene Dateien
+  --help, -h                   Zeige diese Hilfe an
+
+Beispiele:
+  node scripts/generate-audio.js
+  node scripts/generate-audio.js --list-missing-unused
+  node scripts/generate-audio.js "Dein Text" -f
+        `);
+        process.exit(0);
+    }
 
     // --- SINGLE TEXT GENERATION MODE ---
     if (textArg && !listMode) {
@@ -260,6 +284,16 @@ async function main() {
                 if (!elevenlabs || typeof elevenlabs.generateAudio !== 'function') throw new Error('ElevenLabs TTS module not loaded');
                 await elevenlabs.generateAudio(word, filePath, ELEVENLABS_VOICE);
             }
+        try {
+            // Normalize audio file
+            const tempWav = filePath.replace(/\.mp3$/, '_norm.wav');
+            execFileSync('ffmpeg', ['-y', '-i', filePath, '-af', `loudnorm=I=${TARGET_LUFS}:TP=${TP_CEIL}:LRA=${LRA}`, tempWav]);
+            execFileSync('ffmpeg', ['-y', '-i', tempWav, '-codec:a', 'libmp3lame', '-qscale:a', '2', filePath]);
+            fs.unlinkSync(tempWav);
+            console.log(`Normalized audio: ${fileName}`);
+        } catch (normErr) {
+            console.error(`Error normalizing "${fileName}":`, normErr.message || normErr);
+        }
             console.log(`Successfully saved ${fileName}`);
         } catch (err) {
             console.error(`Error generating audio for "${word}":`, err.message || err);

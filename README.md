@@ -84,24 +84,80 @@ ELEVENLABS_VOICE=NBqeXKdZHweef6y0B67V
 
 ### 3. Skript ausführen
 
-Führe im Projektverzeichnis folgenden Befehl aus:
+#### Verfügbare Optionen
 
-```
+- `--list-missing-unused` (`-l`): Liste fehlende und unbenutzte Audiodateien.
+- `--force` (`-f`): Überschreibe vorhandene Dateien.
+- `--help` (`-h`): Zeige diese Hilfe an.
+
+#### Generiere alle Audiodateien
+
+```bash
 node scripts/generate-audio.js
 ```
 
+Standardmäßig werden:
+- Unbenutzte Audio-Dateien im Verzeichnis `src/audio/` entfernt.
+- Fehlende Audiodateien generiert.
+- Dateien übersprungen, wenn sie bereits vorhanden sind.
+- Eine maximale Gleichzeitigkeit von 2 verwendet (konfigurierbar über `AUDIO_GEN_CONCURRENCY`).
+
+Du kannst die maximale Gleichzeitigkeit ändern:
+
+```bash
+export AUDIO_GEN_CONCURRENCY=5
+```
+
+#### Liste fehlende und unbenutzte Audiodateien
+
+```bash
+node scripts/generate-audio.js --list-missing-unused
+```
+
+oder
+
+```bash
+node scripts/generate-audio.js -l
+```
+
+#### Einzelne Audio-Datei generieren
+
+```bash
+node scripts/generate-audio.js "Dein Text"
+```
+
+oder mit benutzerdefiniertem Dateinamen:
+
+```bash
+node scripts/generate-audio.js "Dein Text" "custom_name"
+```
+
+Mit `--force` oder `-f` wird eine bereits vorhandene Datei überschrieben:
+
+```bash
+node scripts/generate-audio.js "Dein Text" --force
+node scripts/generate-audio.js "Dein Text" -f
+```
+
+#### Hilfe anzeigen
+
+```bash
+node scripts/generate-audio.js --help
+node scripts/generate-audio.js -h
+```
 ### 4. Was macht das Skript?
 
-- Liest alle JSON-Dateien im Verzeichnis `src/data/` aus.
-- Extrahiert alle Wörter und generiert für jedes Wort eine Audiodatei (`.mp3`) im Verzeichnis `src/audio/`.
+- Entfernt unbenutzte Audiodateien im Verzeichnis `src/audio/`.
+- Liest alle JSON-Dateien im Verzeichnis `src/data/` aus und sammelt alle Wörter.
+- Generiert fehlende Audiodateien (`.mp3`) im Verzeichnis `src/audio/`.
 - Verwendet den gewählten TTS-Anbieter (ElevenLabs oder OpenAI) und die konfigurierte Stimme zur Sprachausgabe.
-- Überspringt Wörter, für die bereits eine Audiodatei existiert.
+- Überspringt vorhandene Dateien, sofern nicht `--force` gesetzt ist.
 
 ### 5. Hinweise & Fehlerbehebung
 
-- Stelle sicher, dass die API-Schlüssel und ggf. Voice-IDs korrekt gesetzt und gültig sind.
-- Das Skript bricht ab, wenn keine Verbindung zum TTS-Anbieter hergestellt werden kann oder die Datenverzeichnisse fehlen.
-- Bei Problemen prüfe die Konsolenausgabe auf Fehlermeldungen (z.B. fehlende API-Keys, ungültige JSON-Dateien, fehlende Verzeichnisse).
+- Stelle sicher, dass die API-Schlüssel (`OPENAI_API_KEY` oder `XI_API_KEY`) und ggf. Voice-IDs korrekt gesetzt und gültig sind.
+- Das Skript bricht ab, wenn keine Verbindung zum TTS-Anbieter hergestellt werden kann oder die erforderlichen Verzeichnisse fehlen.
+- Prüfe bei Problemen die Konsolenausgabe auf Fehlermeldungen.
 - Die Generierung kann je nach Anzahl der Wörter und Geschwindigkeit des TTS-Anbieters einige Zeit dauern.
 
 ---

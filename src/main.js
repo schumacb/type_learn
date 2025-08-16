@@ -31,10 +31,16 @@ import {
     nextLevelButton,
     populateLevelSelector,
     prevLevelButton,
-    displayElement
+    displayElement,
+    AVATARS,
+    avatarsReady,
+    setAvatar
 } from './ui.js';
 
 async function initGame() {
+    await avatarsReady;
+    const randomAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
+    setAvatar(randomAvatar);
     displayElement.textContent = "Klick oder Taste drücken, um zu starten";
     const gameLevels = await loadGameData();
     const gameState = getGameState();

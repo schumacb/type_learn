@@ -17,6 +17,48 @@ export const levelSelectElement = document.getElementById('levelSelect');
 export const prevLevelButton = document.getElementById('prevLevel');
 export const nextLevelButton = document.getElementById('nextLevel');
 
+// Avatars: load available avatar folders from a JSON manifest (read once).
+// The file is expected at "src/avatars/avatars.json".
+export let AVATARS = [];
+// default until avatars.json is loaded
+export let selectedAvatar = 'tiger';
+
+export async function loadAvatars() {
+    try {
+        const res = await fetch('src/avatars/avatars.json');
+        if (!res.ok) throw new Error(`Failed to fetch avatars.json: ${res.status}`);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+            AVATARS = data;
+        } else {
+            throw new Error('avatars.json did not contain a non-empty array');
+        }
+    } catch (e) {
+        console.warn('Could not load src/avatars/avatars.json, falling back to defaults', e);
+        AVATARS = ['tiger', 'wolf'];
+    }
+    if (!AVATARS.includes(selectedAvatar)) {
+        selectedAvatar = AVATARS[0];
+    }
+    return AVATARS;
+}
+
+// Promise that resolves once avatars are loaded. Consumers may await this if needed.
+export const avatarsReady = loadAvatars();
+
+export function setAvatar(name) {
+    if (!name) return;
+    if (AVATARS.includes(name)) {
+        selectedAvatar = name;
+    } else {
+        selectedAvatar = name;
+    }
+}
+
+export function getAvatar() {
+    return selectedAvatar;
+}
+
 let currentKeyElement = null;
 
 export function initKeyboard(level, handleKeyPress) {
@@ -194,11 +236,11 @@ export function createFireworks() {
 export function showTigerAnimation(state) {
     // Bridge old API to new cinematic overlay driven by JSON configs
     try {
+        const name = selectedAvatar || 'tiger';
         if (state === 'talk') {
-            // default avatar: tiger
-            startAvatarTalk('tiger');
+            startAvatarTalk(name);
         } else if (state === 'idle') {
-            setAvatarIdle('tiger');
+            setAvatarIdle(name);
         } else if (state === 'hide') {
             hideAvatar();
         } else {

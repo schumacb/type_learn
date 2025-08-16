@@ -232,7 +232,15 @@
 
         // --- EVENT HANDLERS ---
         async function handleSaveSettings() {
-            const settingsBlob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+            const dims = getFrameDimensions();
+            let exportSettings = {
+                ...settings,
+                totalFrames: (settings.horizontalFrames || 1) * (settings.verticalFrames || 1)
+            };
+            if (image) {
+                exportSettings.imageInfo = { width: image.width, height: image.height, frameDimensions: dims };
+            }
+            const settingsBlob = new Blob([JSON.stringify(exportSettings, null, 2)], { type: 'application/json' });
             if (window.showSaveFilePicker) {
                 try {
                     const handle = await window.showSaveFilePicker({ suggestedName: 'sprite-settings.json', types: [{ description: 'JSON Files', accept: { 'application/json': ['.json'] } }] });

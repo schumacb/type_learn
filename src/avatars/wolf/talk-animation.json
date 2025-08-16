@@ -1,0 +1,19 @@
+{
+  "borderTop": 55,
+  "borderRight": 50,
+  "borderBottom": 52,
+  "borderLeft": 51,
+  "horizontalFrames": 3,
+  "verticalFrames": 3,
+  "animationSpeed": 125,
+  "loop": true,
+  "imageInfo": {
+    "width": 1024,
+    "height": 1024,
+    "frameDimensions": {
+      "width": 308,
+      "height": 320
+    }
+  },
+  "totalFrames": 9
+}

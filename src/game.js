@@ -1,7 +1,7 @@
 // Core game logic and state management.
 
 import { game } from './config.js';
-import { playLevelUpFanfare, playSound, playSuccessAudio, playWordCompleteSound, speakWordAndWait } from './audio.js';
+import { playLevelUpFanfare, playSound, playSuccessAudio, playWordCompleteSound, speakWordAndWait, cancelSpeechPlayback } from './audio.js';
 import {
     correctElement,
     createFireworks,
@@ -37,29 +37,49 @@ let gameState = {
     gameStarted: false,
     currentLevelData: null,
 };
+ 
+async function tryLoadJson(pathRel) {
+    // Be robust across dev/build and hosting roots:
+    // 1) relative to current page (e.g. ./data/levels.json from /src/index.html)
+    // 2) absolute under /src (e.g. /src/data/levels.json) useful with Vite dev
+    // 3) module-relative using import.meta.url (bundled builds)
+    const attempts = [
+        pathRel,
+        pathRel.startsWith('./') ? '/src/' + pathRel.slice(2) : pathRel,
+        (() => {
+            try {
+                return new URL(pathRel, import.meta.url).toString();
+            } catch {
+                return null;
+            }
+        })(),
+    ].filter(Boolean);
+
+    for (const url of attempts) {
+        try {
+            const res = await fetch(url);
+            if (res && res.ok) {
+                return await res.json();
+            }
+        } catch {
+            // try next
+        }
+    }
+    throw new Error(`Failed to load JSON from: ${attempts.join(' | ')}`);
+}
 
 export async function loadGameData() {
     try {
         // Load success messages
         try {
-            const res = await fetch('./data/success-messages.json');
-            if (res.ok) {
-                successMessages = await res.json();
-            } else {
-                console.warn("Could not load success-messages.json");
-                successMessages = [];
-            }
+            successMessages = await tryLoadJson('./data/success-messages.json');
         } catch (e) {
             console.warn("Error loading success-messages.json:", e);
             successMessages = [];
         }
 
         // Load level manifest
-        const manifestRes = await fetch('./data/levels.json');
-        if (!manifestRes.ok) {
-            throw new Error("Could not load level manifest.");
-        }
-        levelManifest = await manifestRes.json();
+        levelManifest = await tryLoadJson('./data/levels.json');
 
         if (levelManifest.length === 0) {
             throw new Error("No levels found in manifest.");
@@ -75,23 +95,82 @@ export async function loadGameData() {
 export function waitForEnterOrTimeout(ms) {
     return new Promise(resolve => {
         let done = false;
+
+        function cleanup() {
+            window.removeEventListener('keydown', onKey, true);
+            window.removeEventListener('pointerdown', onPointer, true);
+        }
+
+        function finish(reason) {
+            if (done) return;
+            done = true;
+            cleanup();
+            resolve(reason);
+        }
+
         function onKey(e) {
             if (done) return;
-            if (e.key === "Enter") {
-                done = true;
-                window.removeEventListener('keydown', onKey, true);
-                resolve("enter");
+            if (e.repeat) return;
+            if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+            if (e.key === 'Enter' || e.key === ' ') {
+                if (e.key === ' ') e.preventDefault(); // avoid scroll
+                finish('key');
             }
         }
+
+        function onPointer(_e) {
+            finish('pointer');
+        }
+
         window.addEventListener('keydown', onKey, true);
-        setTimeout(() => {
-            if (!done) {
-                done = true;
-                window.removeEventListener('keydown', onKey, true);
-                resolve("timeout");
-            }
-        }, ms);
+        window.addEventListener('pointerdown', onPointer, true);
+
+        setTimeout(() => finish('timeout'), ms);
     });
+}
+
+// Skippable user input during speech (no timeout)
+function waitForSkipOnly() {
+    return new Promise(resolve => {
+        let done = false;
+        function finish(reason) {
+            if (done) return;
+            done = true;
+            window.removeEventListener('keydown', onKey, true);
+            window.removeEventListener('pointerdown', onPointer, true);
+            resolve(reason);
+        }
+        function onKey(e) {
+            if (done) return;
+            if (e.repeat) return;
+            if (e.ctrlKey || e.altKey || e.metaKey) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+                if (e.key === ' ') e.preventDefault();
+                finish('key');
+            }
+        }
+        function onPointer(_e) { finish('pointer'); }
+        window.addEventListener('keydown', onKey, true);
+        window.addEventListener('pointerdown', onPointer, true);
+    });
+}
+
+// Speak a line but allow user to skip immediately (cancels audio/TTS)
+async function speakSkippable(text) {
+    try {
+        const result = await Promise.race([
+            speakWordAndWait(text, true, false).then(() => 'spoken'),
+            waitForSkipOnly().then(() => 'skipped'),
+        ]);
+        if (result === 'skipped') {
+            try { cancelSpeechPlayback(); } catch {}
+        }
+        return result;
+    } catch {
+        try { cancelSpeechPlayback(); } catch {}
+        return 'skipped';
+    }
 }
 
 // App intro sequence: loads intro.json, plays TTS and tiger animation
@@ -105,9 +184,7 @@ export async function playAppIntro() {
     showTigerAnimation('talk');
     let introData = null;
     try {
-        const res = await fetch('./data/intro.json');
-        if (!res.ok) throw new Error("intro.json not found");
-        introData = await res.json();
+        introData = await tryLoadJson('./data/intro.json');
     } catch (e) {
         console.error("Error loading intro.json:", e);
         displayElement.textContent = "Fehler beim Laden des Intros!";
@@ -120,11 +197,16 @@ export async function playAppIntro() {
         const { text, pause } = introArr[i];
         displayElement.textContent = text;
         showTigerAnimation('talk');
-        try { await speakWordAndWait(text, true, false); } catch (e) {
+        let spokenResult = 'spoken';
+        try { spokenResult = await speakSkippable(text); } catch (e) {
             console.error("Error speaking intro word:", e);
         }
-        showTigerAnimation('idle');
-        await waitForEnterOrTimeout((typeof pause === "number" ? pause : 0.5) * 1000);
+        showTigerAnimation('idle'); // pause shows frame 0 (no animation)
+        if (spokenResult !== 'skipped') {
+            await waitForEnterOrTimeout((typeof pause === "number" ? pause : 0.5) * 1000);
+        } else {
+            break; // skip remaining intro lines if user requested skip
+        }
     }
     displayElement.textContent = "";
     gameState.isAppIntroPlaying = false;
@@ -138,11 +220,7 @@ async function loadLevel(levelIndex) {
     }
     const levelFile = levelManifest[levelIndex].file;
     try {
-        const res = await fetch(`./data/${levelFile}`);
-        if (!res.ok) {
-            throw new Error(`Failed to fetch level data: ${levelFile}`);
-        }
-        gameState.currentLevelData = await res.json();
+        gameState.currentLevelData = await tryLoadJson(`./data/${levelFile}`);
         return true;
     } catch (error) {
         console.error(`Error loading level ${levelIndex}:`, error);
@@ -167,18 +245,36 @@ async function showLevelIntro() {
     }
 
     displayElement.textContent = levelObj.name || "Level";
-    try { await speakWordAndWait(levelObj.name || "Level", true, gameState.isLevelIntroPlaying); } catch (e) {
+    let nameResult = 'spoken';
+    try { nameResult = await speakSkippable(levelObj.name || "Level"); } catch (e) {
         console.error("Error speaking level intro:", e);
     }
-    showTigerAnimation('idle');
-    await new Promise(resolve => setTimeout(resolve, game.introPause));
+    showTigerAnimation('idle'); // show first frame during pause
+    if (nameResult !== 'skipped') {
+        await waitForEnterOrTimeout(game.introPause);
+    } else {
+        displayElement.textContent = "";
+        gameState.isLevelIntroPlaying = false;
+        showTigerAnimation('hide');
+        generateNewWord();
+        return;
+    }
 
     if (levelObj.description) {
         displayElement.textContent = levelObj.description;
         showTigerAnimation('talk');
-        try { await speakWordAndWait(levelObj.description, true, gameState.isLevelIntroPlaying); } catch (e) {}
-        showTigerAnimation('idle');
-        await new Promise(resolve => setTimeout(resolve, game.introPause));
+        let descResult = 'spoken';
+        try { descResult = await speakSkippable(levelObj.description); } catch (e) {}
+        showTigerAnimation('idle'); // show first frame during pause
+        if (descResult !== 'skipped') {
+            await waitForEnterOrTimeout(game.introPause);
+        } else {
+            displayElement.textContent = "";
+            gameState.isLevelIntroPlaying = false;
+            showTigerAnimation('hide');
+            generateNewWord();
+            return;
+        }
     }
 
     displayElement.textContent = "";

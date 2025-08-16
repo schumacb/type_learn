@@ -39,14 +39,16 @@ async function initGame() {
     const gameLevels = await loadGameData();
     const gameState = getGameState();
 
-    initKeyboard(gameLevels[gameState.level], handleKeyPress);
     initAudio();
-
-    correctElement.textContent = gameState.correctCount;
-    errorsElement.textContent = gameState.errorCount;
-    levelDisplayElement.textContent = gameState.level;
-    populateLevelSelector(gameLevels);
-    levelSelectElement.value = gameState.level;
+    if (Array.isArray(gameLevels) && gameLevels.length > 0) {
+        // Initialize UI only when data is available; otherwise keep the start message visible
+        initKeyboard(gameLevels[gameState.level], handleKeyPress);
+        correctElement.textContent = gameState.correctCount;
+        errorsElement.textContent = gameState.errorCount;
+        levelDisplayElement.textContent = gameState.level;
+        populateLevelSelector(gameLevels);
+        levelSelectElement.value = gameState.level;
+    }
 
     prevLevelButton.addEventListener('click', async () => { await levelDown(); });
     nextLevelButton.addEventListener('click', async () => { await setLevel(getGameState().level + 1); });

@@ -9,15 +9,14 @@ export const keyboardLayout = [
 ];
 
 export const splitPoints = [6, 5, 5, 5];
-
 export const homeRowKeys = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ö', 'Ä'];
 
 export const fingerColors = {
-    'kleiner': '#FF6B6B',   // Pinky
-    'ring': '#4ECDC4',      // Ring finger
-    'mittel': '#FFD166',    // Middle finger
-    'zeige': '#1B98E0',     // Index finger
-    'daumen': '#8884D8'     // Thumb
+    'kleiner': '#FF6B6B',
+    'ring': '#4ECDC4',
+    'mittel': '#FFD166',
+    'zeige': '#1B98E0',
+    'daumen': '#8884D8'
 };
 
 export const fingerMap = {
@@ -44,3 +43,4 @@ export const game = {
     wordCompleteDelay: 1000,
     introPause: 500,
 };
+

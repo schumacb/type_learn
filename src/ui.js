@@ -2,6 +2,8 @@
 
 import { fingerColors, fingerMap, homeRowKeys, keyboardLayout, rowOffsets, splitPoints } from './config.js';
 import { getRandomColor } from './utils.js';
+// Avatar sprite controller renders into the inline media strip above the display
+import { startAvatarTalk, setAvatarIdle, hideAvatar } from './talking.js';
 
 export const displayElement = document.getElementById('display');
 export const keyboardElement = document.getElementById('keyboard');
@@ -9,7 +11,7 @@ export const progressElement = document.getElementById('progress');
 export const correctElement = document.getElementById('correct');
 export const errorsElement = document.getElementById('errors');
 export const levelDisplayElement = document.getElementById('levelDisplay');
-export const wordIconsElement = document.getElementById('wordIcons');
+export const wordIconsElement = document.getElementById('mediaStrip');
 export const keyEls = new Map();
 export const levelSelectElement = document.getElementById('levelSelect');
 export const prevLevelButton = document.getElementById('prevLevel');
@@ -190,29 +192,20 @@ export function createFireworks() {
 }
 
 export function showTigerAnimation(state) {
-    if (wordIconsElement) {
+    // Bridge old API to new cinematic overlay driven by JSON configs
+    try {
         if (state === 'talk') {
-            wordIconsElement.innerHTML = '<div class="tiger-talk-animation"></div>';
-            const tigerDiv = wordIconsElement.querySelector('.tiger-talk-animation');
-            if (tigerDiv) {
-                tigerDiv.classList.add('tiger-talk-animation');
-                tigerDiv.style.backgroundImage = "";
-                tigerDiv.style.backgroundPosition = "";
-                tigerDiv.style.backgroundSize = "";
-            }
+            // default avatar: tiger
+            startAvatarTalk('tiger');
         } else if (state === 'idle') {
-            const tigerDiv = wordIconsElement.querySelector('.tiger-talk-animation');
-            if (tigerDiv) {
-                tigerDiv.classList.remove('tiger-talk-animation');
-                tigerDiv.style.backgroundImage = "url('./avatars/tiger/talk-animation.png')";
-                tigerDiv.style.width = "308px";
-                tigerDiv.style.height = "320px";
-                tigerDiv.style.backgroundSize = "1024px 1024px";
-                tigerDiv.style.backgroundPosition = "-40px -32px";
-            }
+            setAvatarIdle('tiger');
+        } else if (state === 'hide') {
+            hideAvatar();
         } else {
-            wordIconsElement.innerHTML = '';
+            hideAvatar();
         }
+    } catch (e) {
+        console.error('showTigerAnimation bridge error:', e);
     }
 }
 

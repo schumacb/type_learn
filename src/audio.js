@@ -5,6 +5,8 @@ import { normalizeFilename } from './utils.js';
 let audioContext;
 let currentSpokenAudio = null;
 let germanVoice = null;
+// Resolver for the currently active speakWordAndWait promise (audio or TTS)
+let pendingSpeakResolve = null;
 
 export function initAudio() {
     if (!audioContext) {
@@ -50,17 +52,27 @@ export async function speakWordAndWait(word, force = false, isLevelIntroPlaying)
     if (isLevelIntroPlaying && !force) return;
 
     // Cancel any previous audio or TTS
-    if (currentSpokenAudio) {
-        try {
-            currentSpokenAudio.pause();
-            currentSpokenAudio.currentTime = 0;
-        } catch (e) {
-            console.error("Error resetting currentSpokenAudio:", e);
+    try {
+        if (currentSpokenAudio) {
+            try {
+                currentSpokenAudio.pause();
+                currentSpokenAudio.currentTime = 0;
+            } catch (e) {
+                console.error("Error resetting currentSpokenAudio:", e);
+            }
+            currentSpokenAudio = null;
         }
-        currentSpokenAudio = null;
-    }
-    if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
+        if (pendingSpeakResolve) {
+            // Resolve any previous pending promise to avoid hangs
+            const r = pendingSpeakResolve;
+            pendingSpeakResolve = null;
+            try { r(); } catch {}
+        }
+    } catch (e) {
+        console.error("Error during prior speech cancellation:", e);
     }
 
     const fileName = `${normalizeFilename(word).toLowerCase()}.mp3`;
@@ -77,19 +89,21 @@ export async function speakWordAndWait(word, force = false, isLevelIntroPlaying)
                 const audioUrl = URL.createObjectURL(audioBlob);
                 const audio = new Audio(audioUrl);
                 currentSpokenAudio = audio;
-                audio.addEventListener('ended', () => {
-                    URL.revokeObjectURL(audioUrl);
+
+                const cleanup = () => {
+                    try { URL.revokeObjectURL(audioUrl); } catch {}
                     if (currentSpokenAudio === audio) currentSpokenAudio = null;
+                    if (pendingSpeakResolve === cleanup) pendingSpeakResolve = null;
                     resolve();
-                });
-                audio.addEventListener('error', () => {
-                    URL.revokeObjectURL(audioUrl);
-                    if (currentSpokenAudio === audio) currentSpokenAudio = null;
-                    resolve();
-                });
+                };
+
+                pendingSpeakResolve = cleanup;
+                audio.addEventListener('ended', cleanup, { once: true });
+                audio.addEventListener('error', cleanup, { once: true });
+
                 audio.play().catch((err) => {
                     console.error("Error playing audio:", err);
-                    resolve();
+                    cleanup();
                 });
             });
         }
@@ -101,7 +115,7 @@ export async function speakWordAndWait(word, force = false, isLevelIntroPlaying)
     // Fallback: browser TTS
     return new Promise((resolve) => {
         if (!window.speechSynthesis) return resolve();
-        window.speechSynthesis.cancel();
+        try { window.speechSynthesis.cancel(); } catch {}
         const utterance = new SpeechSynthesisUtterance(word);
         utterance.lang = 'de-DE';
         utterance.rate = 0.8;
@@ -110,11 +124,13 @@ export async function speakWordAndWait(word, force = false, isLevelIntroPlaying)
         if (germanVoice) {
             utterance.voice = germanVoice;
         }
-        utterance.onend = () => resolve();
-        utterance.onerror = (event) => {
-            console.error("TTS error:", event.error || event);
+        const cleanup = () => {
+            if (pendingSpeakResolve === cleanup) pendingSpeakResolve = null;
             resolve();
         };
+        pendingSpeakResolve = cleanup;
+        utterance.onend = cleanup;
+        utterance.onerror = (_event) => cleanup();
         window.speechSynthesis.speak(utterance);
     });
 }
@@ -179,5 +195,31 @@ export async function resumeAudio() {
     }
   } catch (e) {
     console.error("Error resuming audio context:", e);
+  }
+}
+
+/** Cancel current speech playback (audio or TTS) and resolve any pending speak promise */
+export function cancelSpeechPlayback() {
+  try {
+    if (currentSpokenAudio) {
+      try {
+        currentSpokenAudio.pause();
+        // Force unload so listeners can resolve via our pending resolver
+        currentSpokenAudio.src = '';
+        currentSpokenAudio.load();
+      } catch (e) {
+        console.error("Error stopping audio element:", e);
+      }
+      currentSpokenAudio = null;
+    }
+    if (window.speechSynthesis) {
+      try { window.speechSynthesis.cancel(); } catch {}
+    }
+  } finally {
+    if (pendingSpeakResolve) {
+      const r = pendingSpeakResolve;
+      pendingSpeakResolve = null;
+      try { r(); } catch {}
+    }
   }
 }

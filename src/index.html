@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="game-area">
-        <div class="word-icons" id="wordIcons"></div>
+        <div class="media-strip" id="mediaStrip"></div>
         <div class="display-area" id="display" aria-live="polite"></div>
 
         <div class="keyboard" id="keyboard">
@@ -40,8 +40,13 @@
 
         <div class="progress-container">
             <div class="progress-bar">
-                <div class="progress" id="progress"
-+       role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+                <div
+                  class="progress"
+                  id="progress"
+                  role="progressbar"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  aria-valuenow="0"></div>
             </div>
         </div>
 
@@ -76,10 +81,6 @@
         </div>
     </div>
 
-    <div class="success-message" id="successMessage">
-        Super gemacht! 🎉<br>
-        Du bist ein Tastatur-Profi!
-    </div>
     <script src="./main.js" type="module" defer></script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 {
-  "borderTop": 55,
-  "borderRight": 50,
-  "borderBottom": 52,
-  "borderLeft": 51,
+  "borderTop": 44,
+  "borderRight": 44,
+  "borderBottom": 44,
+  "borderLeft": 44,
   "horizontalFrames": 3,
   "verticalFrames": 3,
   "animationSpeed": 125,
@@ -11,8 +11,8 @@
     "width": 1024,
     "height": 1024,
     "frameDimensions": {
-      "width": 307,
-      "height": 305
+      "width": 312,
+      "height": 312
     }
   },
   "totalFrames": 9
